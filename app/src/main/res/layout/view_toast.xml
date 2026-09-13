@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_toast"
+    android:elevation="8dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="10dp">
+
+    <FrameLayout
+        android:id="@+id/toastIconBg"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@drawable/bg_icon_blue">
+
+        <ImageView
+            android:id="@+id/toastIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_gravity="center"
+            android:contentDescription="Notificación"
+            android:src="@drawable/ic_fa_circle_check"
+            app:tint="@color/info" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/toastMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:text="Mensaje"
+        android:textColor="@color/text_main"
+        android:textSize="13sp" />
+
+    <ImageView
+        android:id="@+id/toastClose"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="Cerrar"
+        android:src="@drawable/ic_fa_xmark"
+        app:tint="@color/text_muted" />
+</LinearLayout>

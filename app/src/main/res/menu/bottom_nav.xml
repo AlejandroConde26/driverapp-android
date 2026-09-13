@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_orders"
+        android:icon="@drawable/ic_fa_list_check"
+        android:title="@string/tab_orders" />
+    <item
+        android:id="@+id/nav_map"
+        android:icon="@drawable/ic_fa_map_location_dot"
+        android:title="@string/tab_map" />
+    <item
+        android:id="@+id/nav_earnings"
+        android:icon="@drawable/ic_fa_wallet"
+        android:title="@string/tab_earnings" />
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_fa_user"
+        android:title="@string/tab_profile" />
+</menu>

@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">DriverApp</string>
+    <string name="login_subtitle">Plataforma de Repartidores</string>
+    <string name="email_label">Correo o Usuario</string>
+    <string name="password_label">Contraseña</string>
+    <string name="login">Iniciar Sesión</string>
+    <string name="tab_orders">Órdenes</string>
+    <string name="tab_map">Mapa</string>
+    <string name="tab_earnings">Ganancias</string>
+    <string name="tab_profile">Perfil</string>
+
+    <string name="status_online">Conectado</string>
+    <string name="status_offline">Desconectado</string>
+    <string name="subtitle_orders">Bienvenido de vuelta</string>
+    <string name="subtitle_map">Estado de tu entrega en tiempo real</string>
+    <string name="subtitle_earnings">Resumen de tus ingresos</string>
+    <string name="subtitle_profile">Gestiona tu cuenta y preferencias</string>
+
+    <string name="tab_assigned">Asignados</string>
+    <string name="tab_history">Historial</string>
+    <string name="show_detail">Ver Detalle</string>
+    <string name="accept">Aceptar Pedido</string>
+    <string name="reject">Rechazar</string>
+    <string name="view_tracking">Ver Seguimiento</string>
+    <string name="btn_accept">Aceptar</string>
+
+    <string name="empty_orders">Sin pedidos por ahora</string>
+    <string name="empty_history">Sin historial todavía</string>
+</resources>
