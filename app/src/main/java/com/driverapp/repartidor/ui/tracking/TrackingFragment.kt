@@ -9,17 +9,19 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.driverapp.repartidor.App
 import com.driverapp.repartidor.R
-import com.driverapp.repartidor.data.Geo
-import com.driverapp.repartidor.data.LiveLocation
-import com.driverapp.repartidor.data.Order
 import com.driverapp.repartidor.databinding.FragmentTrackingBinding
+import com.driverapp.repartidor.domain.model.EstadoPedido
+import com.driverapp.repartidor.domain.model.Geo
+import com.driverapp.repartidor.domain.model.Pedido
+import com.driverapp.repartidor.domain.repository.LocationRepository
 import com.driverapp.repartidor.ui.common.ConfirmDialog
-import com.driverapp.repartidor.ui.main.AppViewModel
+import com.driverapp.repartidor.ui.main.mainVm
+import com.driverapp.repartidor.ui.main.trackingVm
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
@@ -29,13 +31,16 @@ import org.osmdroid.views.overlay.Marker
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt
 
 class TrackingFragment : Fragment() {
 
     private var _binding: FragmentTrackingBinding? = null
     private val binding get() = _binding!!
-    private val vm: AppViewModel by activityViewModels()
+    private val vm: TrackingViewModel by lazy { trackingVm() }
+    private val mainViewModel by lazy { mainVm() }
+    private val locationRepo: LocationRepository by lazy {
+        (requireActivity().application as App).container.locationRepository
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentTrackingBinding.inflate(inflater, container, false)
@@ -55,9 +60,9 @@ class TrackingFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { vm.activeOrder.collect { render(it) } }
-                launch { vm.user.collect { renderUser(it?.vehicle) } }
+                launch { mainViewModel.user.collect { renderUser(it?.vehicle) } }
                 launch {
-                    LiveLocation.tracker()?.location?.collect {
+                    locationRepo.location.collect {
                         renderLive()
                         updateCurrentMarker()
                     }
@@ -70,7 +75,7 @@ class TrackingFragment : Fragment() {
                 }
             }
         }
-        renderUser(vm.user.value?.vehicle)
+        renderUser(mainViewModel.user.value?.vehicle)
         render(vm.activeOrder.value)
         renderLive()
     }
@@ -91,7 +96,7 @@ class TrackingFragment : Fragment() {
         binding.curTime.text = fmt.format(Date())
     }
 
-    private fun render(order: Order?) {
+    private fun render(order: Pedido?) {
         if (order == null) {
             binding.availableCard.isVisible = true
             binding.deliveryCard.isVisible = false
@@ -112,26 +117,26 @@ class TrackingFragment : Fragment() {
         renderLive()
     }
 
-    private fun isOnTheWay(order: Order): Boolean = order.status == "EN_CAMINO"
+    private fun isOnTheWay(order: Pedido): Boolean = order.estado == EstadoPedido.EN_CAMINO
 
-    private fun originPoint(order: Order) =
+    private fun originPoint(order: Pedido) =
         order.restaurant?.let { GeoPoint(it.lat, it.lng) }
 
     private fun renderLive() {
         val order = vm.activeOrder.value
-        val loc = LiveLocation.tracker()?.location?.value
+        val loc = locationRepo.location.value
         if (order == null) {
             if (loc == null) {
                 binding.curLocation.text = "Localizando…"
             } else {
-                binding.curLocation.text = "${"%.5f".format(loc.latitude)}, ${"%.5f".format(loc.longitude)}"
+                binding.curLocation.text = "${"%.5f".format(loc.lat)}, ${"%.5f".format(loc.lng)}"
             }
             return
         }
         if (loc == null) {
             binding.liveTime.text = "--"
             binding.liveDistance.text = "--"
-            binding.liveHint.text = if (LiveLocation.tracker()?.isTracking() == true) {
+            binding.liveHint.text = if (locationRepo.isTracking()) {
                 "Activando GPS…"
             } else {
                 "Activa la ubicación en tiempo real desde Perfil"
@@ -140,7 +145,7 @@ class TrackingFragment : Fragment() {
             return
         }
 
-        binding.curLocation.text = "${"%.5f".format(loc.latitude)}, ${"%.5f".format(loc.longitude)}"
+        binding.curLocation.text = "${"%.5f".format(loc.lat)}, ${"%.5f".format(loc.lng)}"
 
         val target: org.osmdroid.util.GeoPoint? =
             if (isOnTheWay(order)) GeoPoint(order.destLat, order.destLng) else originPoint(order)
@@ -151,16 +156,16 @@ class TrackingFragment : Fragment() {
             return
         }
 
-        val meters = Geo.distanceMeters(loc.latitude, loc.longitude, target.latitude, target.longitude)
-        val gpsKmh: Double? = loc.speed.takeIf { it in 0.6f..60f }?.let { (it * 3.6).toDouble() }
-        val speed = gpsKmh ?: Geo.vehicleSpeedKmh(vm.user.value?.vehicle)
+        val meters = Geo.distanceMeters(loc.lat, loc.lng, target.latitude, target.longitude)
+        val gpsKmh: Double? = loc.speedMps?.takeIf { it in 0.6f..60f }?.let { (it * 3.6).toDouble() }
+        val speed = gpsKmh ?: Geo.vehicleSpeedKmh(mainViewModel.user.value?.vehicle)
         val minutes = Geo.estimateMinutes(meters, speed)
         binding.liveTime.text = etaLabel(minutes)
         binding.liveDistance.text = Geo.formatDistance(meters)
         binding.liveHint.text = if (gpsKmh != null) {
             "Velocidad actual ${"%.0f".format(gpsKmh)} km/h · en tiempo real"
         } else {
-            "ETA estimado a velocidad promedio de ${vm.user.value?.vehicle ?: "Bicicleta"}".replace("de Bicicleta", "de ${vm.user.value?.vehicle ?: "Bicicleta"}")
+            "ETA estimado a velocidad promedio de ${mainViewModel.user.value?.vehicle ?: "Bicicleta"}".replace("de Bicicleta", "de ${mainViewModel.user.value?.vehicle ?: "Bicicleta"}")
         }
     }
 
@@ -178,7 +183,7 @@ class TrackingFragment : Fragment() {
 
     private var currentMarker: Marker? = null
 
-    private fun setMapMarkers(order: Order?) {
+    private fun setMapMarkers(order: Pedido?) {
         binding.mapView.overlays.removeAll { it is Marker }
         currentMarker = null
         if (order == null) {
@@ -210,18 +215,18 @@ class TrackingFragment : Fragment() {
     }
 
     private fun updateCurrentMarker() {
-        val loc = LiveLocation.tracker()?.location?.value ?: return
+        val loc = locationRepo.location.value ?: return
         val map = binding.mapView
         if (currentMarker == null) {
             currentMarker = Marker(map).apply {
-                position = GeoPoint(loc.latitude, loc.longitude)
+                position = GeoPoint(loc.lat, loc.lng)
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                 title = "Mi ubicación"
                 icon = tintedIcon(R.drawable.ic_fa_map_location_dot, android.graphics.Color.rgb(59, 130, 246))
             }
             map.overlays.add(currentMarker!!)
         } else {
-            currentMarker!!.position = GeoPoint(loc.latitude, loc.longitude)
+            currentMarker!!.position = GeoPoint(loc.lat, loc.lng)
         }
         map.invalidate()
     }
@@ -229,20 +234,20 @@ class TrackingFragment : Fragment() {
     private fun callRestaurant() {
         val phone = vm.activeOrder.value?.restaurant?.phone
         if (phone.isNullOrBlank()) {
-            vm.toast("El restaurante no tiene teléfono registrado")
+            vm.showMessage("El restaurante no tiene teléfono registrado")
             return
         }
         try {
             startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
         } catch (_: Exception) {
-            vm.toast("No se pudo abrir el marcador")
+            vm.showMessage("No se pudo abrir el marcador")
         }
     }
 
     private fun showItems() {
         val order = vm.activeOrder.value ?: return
         if (order.items.isEmpty()) {
-            vm.toast("La orden no tiene items (pedido directo)")
+            vm.showMessage("La orden no tiene items (pedido directo)")
             return
         }
         val lines = order.items.map { "${it.quantity}× ${it.productName}" }
@@ -266,7 +271,7 @@ class TrackingFragment : Fragment() {
             confirmStyle = false,
         ) {
             vm.complete(order) {
-                vm.toast("¡Pedido completado! 🎉")
+                vm.showMessage("¡Pedido completado! 🎉")
             }
         }.show()
     }

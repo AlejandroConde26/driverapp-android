@@ -1,4 +1,4 @@
-package com.driverapp.repartidor.data
+package com.driverapp.repartidor.data.hardware.gps
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -11,18 +11,6 @@ import android.os.Looper
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-
-object LiveLocation {
-    private var tracker: LocationTracker? = null
-
-    fun init(context: Context) {
-        if (tracker == null) tracker = LocationTracker(context.applicationContext)
-    }
-
-    fun tracker(): LocationTracker? = tracker
-
-    fun enabled(): Boolean = tracker?.isTracking() == true
-}
 
 class LocationTracker(context: Context) {
 

@@ -11,15 +11,15 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.driverapp.repartidor.App
 import com.driverapp.repartidor.R
-import com.driverapp.repartidor.data.EarningsSummary
 import com.driverapp.repartidor.databinding.FragmentEarningsBinding
 import com.driverapp.repartidor.databinding.ItemHistoryBinding
-import com.driverapp.repartidor.ui.main.AppViewModel
+import com.driverapp.repartidor.domain.model.ResumenGanancias
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -27,7 +27,9 @@ class EarningsFragment : Fragment() {
 
     private var _binding: FragmentEarningsBinding? = null
     private val binding get() = _binding!!
-    private val vm: AppViewModel by activityViewModels()
+    private val vm: EarningsViewModel by viewModels {
+        (requireActivity().application as App).container.earningsViewModelFactory()
+    }
 
     private data class DayBar(val label: String, val value: Float, val color: Int)
 
@@ -45,6 +47,7 @@ class EarningsFragment : Fragment() {
             pill.setOnClickListener {
                 selectPill(i, pills)
                 vm.loadEarnings(periods[i])
+                vm.refreshHistory()
                 renderHistory()
             }
         }
@@ -75,7 +78,7 @@ class EarningsFragment : Fragment() {
         }
     }
 
-    private fun render(summary: EarningsSummary?) {
+    private fun render(summary: ResumenGanancias?) {
         if (summary == null) {
             binding.earningsTotal.text = "$0.00"
             binding.ordersCount.text = "0"
@@ -94,7 +97,7 @@ class EarningsFragment : Fragment() {
         binding.connectedTime.text = "-- hrs"
         binding.tipsTotal.text = "$" + String.format(Locale.ROOT, "%.2f", summary.tipsTotal)
 
-val values = summary.chartValues
+        val values = summary.chartValues
         if (values.isNullOrEmpty()) {
             renderBars(emptyList())
         } else {

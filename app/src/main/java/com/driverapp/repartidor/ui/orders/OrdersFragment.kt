@@ -9,17 +9,20 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.driverapp.repartidor.R
-import com.driverapp.repartidor.data.Order
 import com.driverapp.repartidor.databinding.FragmentOrdersBinding
+import com.driverapp.repartidor.domain.model.EstadoPedido
+import com.driverapp.repartidor.domain.model.Pedido
 import com.driverapp.repartidor.ui.common.ConfirmDialog
-import com.driverapp.repartidor.ui.main.AppViewModel
+import com.driverapp.repartidor.ui.common.ErrorState
+import com.driverapp.repartidor.ui.common.LoadingState
 import com.driverapp.repartidor.ui.main.MainActivity
+import com.driverapp.repartidor.ui.main.mainVm
+import com.driverapp.repartidor.ui.main.ordersVm
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -27,13 +30,15 @@ class OrdersFragment : Fragment() {
 
     private var _binding: FragmentOrdersBinding? = null
     private val binding get() = _binding!!
-    private val vm: AppViewModel by activityViewModels()
+    private val vm: OrdersViewModel by lazy { ordersVm() }
+    private val mainViewModel by lazy { mainVm() }
 
     private val adapter = OrdersAdapter(
         onDetail = { showDetail(it) },
         onAccept = { confirmAccept(it) },
         onReject = { confirmReject(it) },
-        onTrack = { (activity as? MainActivity)?.goToMap() }
+        onTrack = { (activity as? MainActivity)?.goToMap() },
+        currentUserId = { mainViewModel.user.value?.id }
     )
     private var currentTab = 0
 
@@ -51,30 +56,42 @@ class OrdersFragment : Fragment() {
         binding.backButton.setOnClickListener { backToList() }
         binding.detailContent.detailAccept.setOnClickListener { currentDetail?.let { confirmAccept(it) } }
         binding.detailContent.detailReject.setOnClickListener { currentDetail?.let { confirmReject(it) } }
+        binding.emptyView.setOnClickListener {
+            if (vm.error.value != ErrorState.None) vm.retry()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { vm.available.collect { onData(it) } }
-                launch { vm.history.collect { onData(it) } }
-                launch { vm.loading.collect { binding.loading.isVisible = it } }
+                launch { vm.available.collect { onData() } }
+                launch { vm.history.collect { onData() } }
+                launch { vm.loading.collect { binding.loading.isVisible = it is LoadingState.Loading } }
+                launch { vm.error.collect { onData() } }
             }
         }
 
         selectTab(0)
     }
 
-    private fun onData(items: List<Order>) {
+    private fun onData() {
         updateTabLabels()
+        val err = vm.error.value
         if (currentTab == 0) {
             adapter.submitList(vm.available.value)
-            binding.emptyView.isVisible = vm.available.value.isEmpty()
-            binding.emptyView.text = "Sin pedidos por ahora"
+            val empty = vm.available.value.isEmpty()
+            binding.emptyView.isVisible = empty
+            binding.emptyView.text = errorOr("Sin pedidos por ahora", err, empty)
         } else {
             adapter.submitList(vm.history.value)
-            binding.emptyView.isVisible = vm.history.value.isEmpty()
-            binding.emptyView.text = "Sin historial todavía"
+            val empty = vm.history.value.isEmpty()
+            binding.emptyView.isVisible = empty
+            binding.emptyView.text = errorOr("Sin historial todavía", err, empty)
         }
     }
+
+    private fun errorOr(default: String, err: ErrorState, empty: Boolean): String =
+        if (empty && err is ErrorState.Message) err.text
+        else if (empty && err is ErrorState.SinConexion) "${err.text} · toca para reintentar"
+        else default
 
     private fun updateTabLabels() {
         binding.tabAssigned.text = "Asignados (${vm.available.value.size})"
@@ -105,9 +122,9 @@ class OrdersFragment : Fragment() {
         }
     }
 
-    private var currentDetail: Order? = null
+    private var currentDetail: Pedido? = null
 
-    private fun showDetail(order: Order) {
+    private fun showDetail(order: Pedido) {
         currentDetail = order
         val d = binding.detailContent
         d.detailOrderId.text = "Orden #${order.id}"
@@ -124,16 +141,16 @@ class OrdersFragment : Fragment() {
         d.detailItemCount.text = "${order.items.size} ${if (order.items.size == 1) "item" else "items"}"
         renderItems(d.detailItems, order)
 
-        val mine = order.driverId == vm.user.value?.id
-        if (mine && order.status == "ACEPTADO") {
+        val mine = order.driverId == mainViewModel.user.value?.id
+        if (mine && order.estado == EstadoPedido.ACEPTADO) {
             d.detailStatus.isVisible = true
             d.detailAccept.isVisible = false
             d.detailReject.isVisible = false
-        } else if (isPast(order)) {
+        } else if (order.isPast) {
             d.detailStatus.isVisible = true
-            d.detailStatus.text = if (order.status == "ENTREGADO") "Entregado" else "Rechazado"
-            d.detailStatus.setBackgroundResource(if (order.status == "ENTREGADO") R.drawable.bg_badge_green else R.drawable.bg_badge_red)
-            d.detailStatus.setTextColor(if (order.status == "ENTREGADO") Color.rgb(16, 185, 129) else Color.rgb(239, 68, 68))
+            d.detailStatus.text = if (order.estado == EstadoPedido.ENTREGADO) "Entregado" else "Rechazado"
+            d.detailStatus.setBackgroundResource(if (order.estado == EstadoPedido.ENTREGADO) R.drawable.bg_badge_green else R.drawable.bg_badge_red)
+            d.detailStatus.setTextColor(if (order.estado == EstadoPedido.ENTREGADO) Color.rgb(16, 185, 129) else Color.rgb(239, 68, 68))
             d.detailAccept.isVisible = false
             d.detailReject.isVisible = false
         } else {
@@ -147,10 +164,7 @@ class OrdersFragment : Fragment() {
         binding.detailContainer.isVisible = true
     }
 
-    private fun isPast(order: Order): Boolean =
-        order.status == "ENTREGADO" || order.status == "RECHAZADO"
-
-    private fun renderItems(container: android.widget.LinearLayout, order: Order) {
+    private fun renderItems(container: android.widget.LinearLayout, order: Pedido) {
         container.removeAllViews()
         order.items.forEach { item ->
             val row = LinearLayoutCompat(requireContext())
@@ -194,8 +208,8 @@ class OrdersFragment : Fragment() {
         return if (h > 0) "$h:${"%02d".format(m)} hrs" else "0:${"%02d".format(m)} hrs"
     }
 
-    private fun confirmAccept(order: Order) {
-        if (order.driverId == vm.user.value?.id && order.status == "ACEPTADO") {
+    private fun confirmAccept(order: Pedido) {
+        if (order.driverId == mainViewModel.user.value?.id && order.estado == EstadoPedido.ACEPTADO) {
             (activity as? MainActivity)?.goToMap()
             return
         }
@@ -218,7 +232,7 @@ class OrdersFragment : Fragment() {
         }.show()
     }
 
-    private fun confirmReject(order: Order) {
+    private fun confirmReject(order: Pedido) {
         ConfirmDialog(
             requireContext(),
             "Rechazar Pedido",

@@ -16,7 +16,7 @@ android {
         buildConfigField(
             "String",
             "API_BASE_URL",
-            "\"http://169.58.190.93:8081/\""
+            "\"http://169.58.190.93:8084/\""
         )
         // Rellena estos valores con tu proyecto Firebase (o deja vacío: login usará DEV_MODE)
         buildConfigField("String", "FIREBASE_API_KEY", "\"\"")
@@ -66,4 +66,12 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging")
 
     implementation("org.osmdroid:osmdroid-android:6.1.20")
+
+    implementation("androidx.security:security-crypto:1.0.0")
+    implementation("com.google.code.gson:gson:2.11.0")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
 }

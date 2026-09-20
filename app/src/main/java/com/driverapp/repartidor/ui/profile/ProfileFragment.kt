@@ -8,17 +8,15 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.driverapp.repartidor.R
 import com.driverapp.repartidor.databinding.FragmentProfileBinding
+import com.driverapp.repartidor.domain.model.User
 import com.driverapp.repartidor.ui.common.ConfirmDialog
 import com.driverapp.repartidor.ui.login.LoginActivity
-import com.driverapp.repartidor.ui.main.AppViewModel
 import com.driverapp.repartidor.ui.main.MainActivity
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -27,7 +25,7 @@ class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
-    private val vm: AppViewModel by activityViewModels()
+    private val vm: ProfileViewModel by lazy { (activity as MainActivity).profileVm }
 
     private val uiPrefs by lazy { requireContext().getSharedPreferences("driverapp_ui", AppCompatActivity.MODE_PRIVATE) }
     private val notifPrefs by lazy { requireContext().getSharedPreferences("driverapp_notifications", AppCompatActivity.MODE_PRIVATE) }
@@ -100,7 +98,7 @@ class ProfileFragment : Fragment() {
         binding.locationSwitch.isChecked = (activity as? MainActivity)?.locationToggleState() ?: true
     }
 
-    private fun renderUser(u: com.driverapp.repartidor.data.User) {
+    private fun renderUser(u: User) {
         binding.profileName.text = u.name
         binding.profileRole.text = "Repartidor · ${u.email ?: ""}"
         binding.profileAvatar.text = u.name.take(2).uppercase(Locale.ROOT)

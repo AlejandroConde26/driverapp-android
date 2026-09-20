@@ -1,9 +1,10 @@
 package com.driverapp.repartidor.ui.main
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,18 +13,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.driverapp.repartidor.App
 import com.driverapp.repartidor.R
-import com.driverapp.repartidor.data.LiveLocation
+import com.driverapp.repartidor.data.firebase.FcmTokenHolder
+import com.driverapp.repartidor.data.firebase.FirebaseConfig
 import com.driverapp.repartidor.databinding.ActivityMainBinding
 import com.driverapp.repartidor.databinding.ViewToastBinding
-import com.driverapp.repartidor.fcm.FirebaseRegistration
+import com.driverapp.repartidor.domain.repository.LocationRepository
 import com.driverapp.repartidor.ui.earnings.EarningsFragment
+import com.driverapp.repartidor.ui.earnings.EarningsViewModel
 import com.driverapp.repartidor.ui.orders.OrdersFragment
+import com.driverapp.repartidor.ui.orders.OrdersViewModel
 import com.driverapp.repartidor.ui.profile.ProfileFragment
+import com.driverapp.repartidor.ui.profile.ProfileViewModel
 import com.driverapp.repartidor.ui.tracking.TrackingFragment
+import com.driverapp.repartidor.ui.tracking.TrackingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -31,7 +39,14 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val vm: AppViewModel by viewModels()
+    private val container get() = (application as App).container
+
+    private val vm: MainViewModel by viewModels { container.mainViewModelFactory() }
+    private val ordersVm: OrdersViewModel by viewModels { container.ordersViewModelFactory() }
+    private val trackingVm: TrackingViewModel by viewModels { container.trackingViewModelFactory() }
+    val profileVm: ProfileViewModel by viewModels { container.profileViewModelFactory() }
+
+    private val locationRepo: LocationRepository by lazy { container.locationRepository }
 
     private val ordersFrag = OrdersFragment()
     private val trackingFrag = TrackingFragment()
@@ -45,8 +60,7 @@ class MainActivity : AppCompatActivity() {
     private val locationLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
-                val tracker = LiveLocation.tracker()
-                tracker?.start()
+                locationRepo.start()
                 vm.toast("Ubicación en tiempo real activada")
             } else {
                 locationPrefs.edit().putBoolean("enabled", false).apply()
@@ -54,14 +68,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    private val notifLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        LiveLocation.init(this)
-        FirebaseRegistration.ensureToken(vm)
-        FirebaseRegistration.ensureNotificationPermission(this)
+        ensureFcmToken()
+        ensureNotificationPermission()
 
         binding.statusPill.setOnClickListener { vm.toggleStatus() }
 
@@ -70,13 +86,13 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_orders -> {
                     showFragment(ordersFrag)
                     bindHeader("¡Hola, ${firstName()}! 👋", getString(R.string.subtitle_orders))
-                    vm.loadAll()
+                    ordersVm.loadAll()
                     true
                 }
                 R.id.nav_map -> {
                     showFragment(trackingFrag)
                     bindHeader(getString(R.string.tab_map), getString(R.string.subtitle_map))
-                    vm.refreshActive()
+                    trackingVm.refreshActive()
                     true
                 }
                 R.id.nav_earnings -> {
@@ -87,7 +103,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_profile -> {
                     showFragment(profileFrag)
                     bindHeader("Mi Perfil", getString(R.string.subtitle_profile))
-                    vm.refreshProfileStats()
+                    profileVm.refreshAll()
                     true
                 }
                 else -> false
@@ -97,6 +113,29 @@ class MainActivity : AppCompatActivity() {
         observeState()
         startLocationLoop()
         binding.bottomNav.selectedItemId = R.id.nav_orders
+    }
+
+    fun ordersViewModel(): OrdersViewModel = ordersVm
+    fun trackingViewModel(): TrackingViewModel = trackingVm
+    fun mainViewModel(): MainViewModel = vm
+    fun earningsViewModelFactory() = container.earningsViewModelFactory()
+
+    private fun ensureFcmToken() {
+        if (!FirebaseConfig.isConfigured()) return
+        lifecycleScope.launch {
+            val token = container.firebaseMessaging.fetchToken() ?: return@launch
+            FcmTokenHolder.token = token
+            vm.updateFcmToken(token)
+        }
+    }
+
+    private fun ensureNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            val permission = Manifest.permission.POST_NOTIFICATIONS
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                notifLauncher.launch(permission)
+            }
+        }
     }
 
     private fun firstName(): String =
@@ -117,7 +156,14 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { vm.online.collect { bindStatus(it) } }
-                launch { vm.error.collect { msg -> msg?.let { showToast(it) } } }
+                launch {
+                    container.messenger.message.collect { msg ->
+                        msg?.let {
+                            showToast(it)
+                            container.messenger.consume()
+                        }
+                    }
+                }
             }
         }
     }
@@ -182,12 +228,11 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             while (isActive) {
                 delay(10_000)
-                val tracker = LiveLocation.tracker() ?: continue
-                if (!tracker.isTracking()) continue
-                val loc = tracker.location.value ?: continue
-                if (tracker.shouldReport(30_000L)) {
-                    vm.reportLocation(loc.latitude, loc.longitude)
-                    tracker.markReported()
+                if (!locationRepo.isTracking()) continue
+                val loc = locationRepo.location.value ?: continue
+                if (locationRepo.shouldReport(30_000L)) {
+                    vm.reportLocation(loc.lat, loc.lng)
+                    locationRepo.markReported()
                 }
             }
         }
@@ -195,21 +240,20 @@ class MainActivity : AppCompatActivity() {
 
     fun setLocationEnabled(enabled: Boolean) {
         locationPrefs.edit().putBoolean("enabled", enabled).apply()
-        val tracker = LiveLocation.tracker()
         if (enabled) {
-            if (tracker?.hasPermission() == true) {
-                tracker.start()
+            if (locationRepo.hasPermission()) {
+                locationRepo.start()
                 vm.toast("Ubicación en tiempo real activada")
             } else {
                 locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
         } else {
-            tracker?.stop()
+            locationRepo.stop()
             vm.toast("Ubicación en tiempo real desactivada")
         }
     }
 
-    fun locationToggleState(): Boolean = LiveLocation.enabled()
+    fun locationToggleState(): Boolean = locationRepo.isTracking()
 
     fun goToMap() {
         binding.bottomNav.selectedItemId = R.id.nav_map
@@ -222,7 +266,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        LiveLocation.tracker()?.stop()
+        locationRepo.stop()
         super.onDestroy()
     }
 }
+
+// Acceso compartido para los fragments (mismo scope de Activity + misma factory).
+fun OrdersFragment.ordersVm(): OrdersViewModel =
+    (activity as MainActivity).ordersViewModel()
+
+fun TrackingFragment.trackingVm(): TrackingViewModel =
+    (activity as MainActivity).trackingViewModel()
+
+fun androidx.fragment.app.Fragment.mainVm(): MainViewModel =
+    (activity as MainActivity).mainViewModel()

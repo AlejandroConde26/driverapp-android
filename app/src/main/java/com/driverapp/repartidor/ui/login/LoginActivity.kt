@@ -10,6 +10,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.driverapp.repartidor.App
 import com.driverapp.repartidor.databinding.ActivityLoginBinding
 import com.driverapp.repartidor.ui.main.MainActivity
 import kotlinx.coroutines.launch
@@ -17,7 +18,9 @@ import kotlinx.coroutines.launch
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private val vm: LoginViewModel by viewModels()
+    private val vm: LoginViewModel by viewModels {
+        (application as App).container.loginViewModelFactory()
+    }
     private var passwordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,6 +1,5 @@
-package com.driverapp.repartidor.data
+package com.driverapp.repartidor.domain.model
 
-import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.roundToInt

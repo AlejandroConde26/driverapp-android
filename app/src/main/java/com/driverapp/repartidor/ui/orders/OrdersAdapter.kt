@@ -8,17 +8,18 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.driverapp.repartidor.R
-import com.driverapp.repartidor.data.Order
-import com.driverapp.repartidor.data.Session
 import com.driverapp.repartidor.databinding.ItemOrderBinding
+import com.driverapp.repartidor.domain.model.EstadoPedido
+import com.driverapp.repartidor.domain.model.Pedido
 import java.util.Locale
 
 class OrdersAdapter(
-    private val onDetail: (Order) -> Unit,
-    private val onAccept: (Order) -> Unit,
-    private val onReject: (Order) -> Unit,
-    private val onTrack: (Order) -> Unit,
-) : ListAdapter<Order, OrdersAdapter.VH>(DIFF) {
+    private val onDetail: (Pedido) -> Unit,
+    private val onAccept: (Pedido) -> Unit,
+    private val onReject: (Pedido) -> Unit,
+    private val onTrack: (Pedido) -> Unit,
+    private val currentUserId: () -> Int? = { null },
+) : ListAdapter<Pedido, OrdersAdapter.VH>(DIFF) {
 
     var isHistory: Boolean = false
 
@@ -30,15 +31,14 @@ class OrdersAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val order = getItem(position)
         val b = holder.binding
-        val user = Session.user()
-        val mine = order.driverId == user?.id
+        val mine = order.driverId == currentUserId()
 
         b.orderId.text = "Orden #${order.id}"
         b.orderPrice.text = "$" + String.format(Locale.ROOT, "%.2f", order.total)
         b.orderPrice.setTextColor(
-            when (order.status) {
-                "ENTREGADO" -> Color.rgb(16, 185, 129)
-                "RECHAZADO", "CANCELADO" -> Color.rgb(107, 114, 128)
+            when (order.estado) {
+                EstadoPedido.ENTREGADO -> Color.rgb(16, 185, 129)
+                EstadoPedido.RECHAZADO, EstadoPedido.CANCELADO -> Color.rgb(107, 114, 128)
                 else -> Color.rgb(229, 57, 53)
             }
         )
@@ -63,7 +63,7 @@ class OrdersAdapter(
         b.btnDetail.text = "Ver Detalle"
         b.btnDetail.setOnClickListener { onDetail(order) }
 
-        if (mine && order.status == "ACEPTADO") {
+        if (mine && order.estado == EstadoPedido.ACEPTADO) {
             b.cardRoot.setBackgroundResource(R.drawable.bg_item_active_left)
             b.actionsRow.isVisible = false
             b.statusBadge.isVisible = true
@@ -77,7 +77,7 @@ class OrdersAdapter(
             b.actionsRow.isVisible = false
             b.btnTrack.isVisible = false
             b.statusBadge.isVisible = true
-            if (order.status == "ENTREGADO") {
+            if (order.estado == EstadoPedido.ENTREGADO) {
                 b.statusBadge.text = "Entregado"
                 b.statusBadge.setBackgroundResource(R.drawable.bg_badge_green)
                 b.statusBadge.setTextColor(Color.rgb(16, 185, 129))
@@ -97,9 +97,9 @@ class OrdersAdapter(
     }
 
     companion object {
-        val DIFF = object : DiffUtil.ItemCallback<Order>() {
-            override fun areItemsTheSame(a: Order, b: Order) = a.id == b.id
-            override fun areContentsTheSame(a: Order, b: Order) = a == b
+        val DIFF = object : DiffUtil.ItemCallback<Pedido>() {
+            override fun areItemsTheSame(a: Pedido, b: Pedido) = a.id == b.id
+            override fun areContentsTheSame(a: Pedido, b: Pedido) = a == b
         }
     }
 }

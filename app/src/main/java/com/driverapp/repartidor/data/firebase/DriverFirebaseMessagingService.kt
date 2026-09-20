@@ -1,25 +1,20 @@
-package com.driverapp.repartidor.fcm
+package com.driverapp.repartidor.data.firebase
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.driverapp.repartidor.App
 import com.driverapp.repartidor.R
-import com.driverapp.repartidor.data.FirebaseTokenProvider
-import com.driverapp.repartidor.data.Session
 import com.driverapp.repartidor.ui.main.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class DriverFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        FirebaseTokenProvider.fcmToken = token
+        FcmTokenHolder.token = token
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
@@ -30,7 +25,8 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String, body: String) {
-        if (Session.token().isNullOrBlank()) return
+        val token = (application as? App)?.container?.tokenStore?.token()
+        if (token.isNullOrBlank()) return
         if (android.os.Build.VERSION.SDK_INT >= 33 &&
             NotificationManagerCompat.from(this).areNotificationsEnabled().not()
         ) return
