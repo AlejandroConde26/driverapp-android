@@ -25,8 +25,9 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String, body: String) {
-        val token = (application as? App)?.container?.tokenStore?.token()
-        if (token.isNullOrBlank()) return
+        val container = (application as? App)?.container ?: return
+        if (container.tokenStore.token().isNullOrBlank()) return
+        if (!container.userPreferences.notificationsEnabled) return
         if (android.os.Build.VERSION.SDK_INT >= 33 &&
             NotificationManagerCompat.from(this).areNotificationsEnabled().not()
         ) return
@@ -39,6 +40,7 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val prefs = (application as? App)?.container?.userPreferences
         val notification = NotificationCompat.Builder(this, "orders")
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle(title)
@@ -46,6 +48,7 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pending)
             .setAutoCancel(true)
+            .setSilent(prefs?.notificationSound == false)
             .build()
 
         runCatching { NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), notification) }

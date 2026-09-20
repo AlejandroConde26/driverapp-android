@@ -2,6 +2,7 @@ package com.driverapp.repartidor.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.driverapp.repartidor.data.local.UserPreferences
 import com.driverapp.repartidor.domain.model.User
 import com.driverapp.repartidor.domain.repository.AuthRepository
 import com.driverapp.repartidor.domain.usecase.ActualizarPerfilUseCase
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
+    val prefs: UserPreferences,
     private val auth: AuthRepository,
     private val obtenerPerfil: ObtenerPerfilUseCase,
     private val actualizarPerfil: ActualizarPerfilUseCase,
@@ -67,6 +69,27 @@ class ProfileViewModel(
             }
         }
     }
+
+    fun setDarkMode(enabled: Boolean) {
+        prefs.darkMode = enabled
+    }
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        prefs.notificationsEnabled = enabled
+        messenger.show(if (enabled) "Notificaciones activadas" else "Notificaciones desactivadas")
+    }
+
+    fun setNotificationSound(enabled: Boolean) {
+        prefs.notificationSound = enabled
+        messenger.show(if (enabled) "Sonido activado" else "Sonido desactivado")
+    }
+
+    fun setLanguage(code: String) {
+        prefs.language = code
+    }
+
+    fun languageLabel(): String =
+        if (prefs.language == UserPreferences.LANG_EN) "English" else "Español"
 
     fun toast(message: String) = messenger.show(message)
 

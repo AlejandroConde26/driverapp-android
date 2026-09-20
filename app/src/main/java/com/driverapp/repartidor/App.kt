@@ -3,6 +3,8 @@ package com.driverapp.repartidor
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import com.driverapp.repartidor.data.firebase.FirebaseConfig
 import com.driverapp.repartidor.di.AppContainer
 import com.google.firebase.FirebaseApp
@@ -14,8 +16,15 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        applyLanguage(container.userPreferences.language)
         initFirebase()
         createNotificationChannel()
+    }
+
+    companion object {
+        fun applyLanguage(code: String) {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
+        }
     }
 
     private fun initFirebase() {

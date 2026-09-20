@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DriverApp</string>
+    <string name="login_subtitle">Delivery Platform</string>
+    <string name="email_label">Email or Username</string>
+    <string name="password_label">Password</string>
+    <string name="login">Sign In</string>
+    <string name="tab_orders">Orders</string>
+    <string name="tab_map">Map</string>
+    <string name="tab_earnings">Earnings</string>
+    <string name="tab_profile">Profile</string>
+
+    <string name="status_online">Online</string>
+    <string name="status_offline">Offline</string>
+    <string name="subtitle_orders">Welcome back</string>
+    <string name="subtitle_map">Your live delivery status</string>
+    <string name="subtitle_earnings">Your income summary</string>
+    <string name="subtitle_profile">Manage your account and preferences</string>
+
+    <string name="tab_assigned">Assigned</string>
+    <string name="tab_history">History</string>
+    <string name="show_detail">View Detail</string>
+    <string name="accept">Accept Order</string>
+    <string name="reject">Reject</string>
+    <string name="view_tracking">View Tracking</string>
+    <string name="btn_accept">Accept</string>
+
+    <string name="empty_orders">No orders for now</string>
+    <string name="empty_history">No history yet</string>
+
+    <string name="prefs_title">Preferences</string>
+    <string name="pref_dark_mode">Dark Mode</string>
+    <string name="pref_notifications">Notifications</string>
+    <string name="pref_location">Real-time Location</string>
+    <string name="pref_sound">Order Alert Sound</string>
+    <string name="pref_language">Language</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="hello_user">Hi, %1$s! 👋</string>
+    <string name="my_earnings">My Earnings</string>
+    <string name="my_profile">My Profile</string>
+</resources>

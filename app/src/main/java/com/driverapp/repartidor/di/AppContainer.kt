@@ -6,6 +6,7 @@ import com.driverapp.repartidor.data.firebase.FirebaseAuthDataSource
 import com.driverapp.repartidor.data.firebase.FirebaseMessagingDataSource
 import com.driverapp.repartidor.data.hardware.gps.LocationRepositoryImpl
 import com.driverapp.repartidor.data.local.TokenDataStore
+import com.driverapp.repartidor.data.local.UserPreferences
 import com.driverapp.repartidor.data.remote.AuthApiService
 import com.driverapp.repartidor.data.remote.PedidoApiService
 import com.driverapp.repartidor.data.remote.RetrofitClient
@@ -44,6 +45,7 @@ class AppContainer(context: Context) {
     val messenger = UiMessenger()
 
     val tokenStore: TokenDataStore by lazy { TokenDataStore(appContext) }
+    val userPreferences: UserPreferences by lazy { UserPreferences(appContext) }
 
     private val retrofit by lazy {
         RetrofitClient.build(
@@ -104,7 +106,7 @@ class AppContainer(context: Context) {
 
     fun profileViewModelFactory() = ViewModelFactory {
         ProfileViewModel(
-            authRepository, obtenerPerfil, actualizarPerfil, actualizarVehiculo,
+            userPreferences, authRepository, obtenerPerfil, actualizarPerfil, actualizarVehiculo,
             obtenerGanancias, historialGanancias, messenger
         )
     }

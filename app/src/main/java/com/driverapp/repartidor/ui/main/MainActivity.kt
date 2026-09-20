@@ -53,9 +53,7 @@ class MainActivity : AppCompatActivity() {
     private val earningsFrag = EarningsFragment()
     private val profileFrag = ProfileFragment()
 
-    private val locationPrefs by lazy {
-        getSharedPreferences("driverapp_location", MODE_PRIVATE)
-    }
+    private val userPrefs get() = container.userPreferences
 
     private val locationLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -63,7 +61,7 @@ class MainActivity : AppCompatActivity() {
                 locationRepo.start()
                 vm.toast("Ubicación en tiempo real activada")
             } else {
-                locationPrefs.edit().putBoolean("enabled", false).apply()
+                userPrefs.locationEnabled = false
                 vm.toast("Permiso de ubicación denegado")
             }
         }
@@ -85,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_orders -> {
                     showFragment(ordersFrag)
-                    bindHeader("¡Hola, ${firstName()}! 👋", getString(R.string.subtitle_orders))
+                    bindHeader(getString(R.string.hello_user, firstName()), getString(R.string.subtitle_orders))
                     ordersVm.loadAll()
                     true
                 }
@@ -97,12 +95,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_earnings -> {
                     showFragment(earningsFrag)
-                    bindHeader("Mis Ganancias", getString(R.string.subtitle_earnings))
+                    bindHeader(getString(R.string.my_earnings), getString(R.string.subtitle_earnings))
                     true
                 }
                 R.id.nav_profile -> {
                     showFragment(profileFrag)
-                    bindHeader("Mi Perfil", getString(R.string.subtitle_profile))
+                    bindHeader(getString(R.string.my_profile), getString(R.string.subtitle_profile))
                     profileVm.refreshAll()
                     true
                 }
@@ -239,7 +237,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setLocationEnabled(enabled: Boolean) {
-        locationPrefs.edit().putBoolean("enabled", enabled).apply()
+        userPrefs.locationEnabled = enabled
         if (enabled) {
             if (locationRepo.hasPermission()) {
                 locationRepo.start()

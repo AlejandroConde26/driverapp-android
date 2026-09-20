@@ -12,7 +12,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.driverapp.repartidor.App
 import com.driverapp.repartidor.R
+import com.driverapp.repartidor.data.local.UserPreferences
 import com.driverapp.repartidor.databinding.FragmentProfileBinding
 import com.driverapp.repartidor.domain.model.User
 import com.driverapp.repartidor.ui.common.ConfirmDialog
@@ -26,9 +28,6 @@ class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
     private val vm: ProfileViewModel by lazy { (activity as MainActivity).profileVm }
-
-    private val uiPrefs by lazy { requireContext().getSharedPreferences("driverapp_ui", AppCompatActivity.MODE_PRIVATE) }
-    private val notifPrefs by lazy { requireContext().getSharedPreferences("driverapp_notifications", AppCompatActivity.MODE_PRIVATE) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
@@ -62,20 +61,25 @@ class ProfileFragment : Fragment() {
         binding.settingsVehicle.setOnClickListener { vehicleDialog() }
 
         binding.darkModeSwitch.setOnCheckedChangeListener { _, checked ->
-            uiPrefs.edit().putBoolean("dark", checked).apply()
+            vm.setDarkMode(checked)
             AppCompatDelegate.setDefaultNightMode(
                 if (checked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
             )
         }
 
         binding.notificationsSwitch.setOnCheckedChangeListener { _, checked ->
-            notifPrefs.edit().putBoolean("on", checked).apply()
-            vm.toast(if (checked) "Notificaciones activadas" else "Notificaciones desactivadas")
+            vm.setNotificationsEnabled(checked)
         }
 
         binding.locationSwitch.setOnCheckedChangeListener { _, checked ->
             (activity as? MainActivity)?.setLocationEnabled(checked)
         }
+
+        binding.soundSwitch.setOnCheckedChangeListener { _, checked ->
+            vm.setNotificationSound(checked)
+        }
+
+        binding.settingsLanguage.setOnClickListener { languageDialog() }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -93,9 +97,30 @@ class ProfileFragment : Fragment() {
     }
 
     private fun SyncSwitches() {
-        binding.darkModeSwitch.isChecked = uiPrefs.getBoolean("dark", false)
-        binding.notificationsSwitch.isChecked = notifPrefs.getBoolean("on", true)
+        binding.darkModeSwitch.isChecked = vm.prefs.darkMode
+        binding.notificationsSwitch.isChecked = vm.prefs.notificationsEnabled
         binding.locationSwitch.isChecked = (activity as? MainActivity)?.locationToggleState() ?: true
+        binding.soundSwitch.isChecked = vm.prefs.notificationSound
+        binding.languageValue.text = vm.languageLabel()
+    }
+
+    private fun languageDialog() {
+        val options = listOf("Español", "English")
+        val codes = listOf(UserPreferences.LANG_ES, UserPreferences.LANG_EN)
+        val selected = codes.indexOf(vm.prefs.language).takeIf { it >= 0 } ?: 0
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.pref_language))
+            .setSingleChoiceItems(options.toTypedArray(), selected) { dialog, which ->
+                dialog.dismiss()
+                val code = codes[which]
+                if (code != vm.prefs.language) {
+                    vm.setLanguage(code)
+                    App.applyLanguage(code)
+                    requireActivity().recreate()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun renderUser(u: User) {

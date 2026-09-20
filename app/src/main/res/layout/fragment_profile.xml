@@ -147,7 +147,7 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
-            android:text="Configuración de Cuenta"
+            android:text="@string/account_settings"
             android:textColor="@color/text_main"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -306,7 +306,7 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
-            android:text="Preferencias"
+            android:text="@string/prefs_title"
             android:textColor="@color/text_main"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -336,7 +336,7 @@
                         android:layout_width="15dp"
                         android:layout_height="15dp"
                         android:layout_gravity="center"
-                        android:contentDescription="Modo Oscuro"
+                        android:contentDescription="@string/pref_dark_mode"
                         android:src="@drawable/ic_fa_moon"
                         app:tint="@color/info" />
                 </FrameLayout>
@@ -346,7 +346,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="Modo Oscuro"
+                    android:text="@string/pref_dark_mode"
                     android:textColor="@color/text_main"
                     android:textSize="14sp" />
 
@@ -378,7 +378,7 @@
                         android:layout_width="15dp"
                         android:layout_height="15dp"
                         android:layout_gravity="center"
-                        android:contentDescription="Notificaciones"
+                        android:contentDescription="@string/pref_notifications"
                         android:src="@drawable/ic_fa_bell"
                         app:tint="@color/primary" />
                 </FrameLayout>
@@ -388,7 +388,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="Notificaciones"
+                    android:text="@string/pref_notifications"
                     android:textColor="@color/text_main"
                     android:textSize="14sp" />
 
@@ -421,7 +421,7 @@
                         android:layout_width="15dp"
                         android:layout_height="15dp"
                         android:layout_gravity="center"
-                        android:contentDescription="Ubicación"
+                        android:contentDescription="@string/pref_location"
                         android:src="@drawable/ic_fa_location_crosshairs"
                         app:tint="@color/success" />
                 </FrameLayout>
@@ -431,7 +431,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="Ubicación en Tiempo Real"
+                    android:text="@string/pref_location"
                     android:textColor="@color/text_main"
                     android:textSize="14sp" />
 
@@ -440,6 +440,106 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/border" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp">
+
+                <FrameLayout
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:background="@drawable/bg_badge_green">
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/pref_sound"
+                        android:src="@drawable/ic_fa_bell"
+                        app:tint="@color/success" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:text="@string/pref_sound"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <Switch
+                    android:id="@+id/soundSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/border" />
+
+            <LinearLayout
+                android:id="@+id/settingsLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp">
+
+                <FrameLayout
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:background="@drawable/bg_badge_blue">
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/pref_language"
+                        android:src="@drawable/ic_fa_circle_info"
+                        app:tint="@color/info" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:text="@string/pref_language"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/languageValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:text="Español"
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="Abrir"
+                    android:src="@drawable/ic_fa_chevron_right"
+                    app:tint="@color/text_muted" />
             </LinearLayout>
 
             <View
