@@ -1,5 +1,6 @@
 package com.driverapp.repartidor.data.repository
 
+import com.driverapp.repartidor.BuildConfig
 import com.driverapp.repartidor.data.remote.PedidoApiService
 import com.driverapp.repartidor.domain.model.Ganancia
 import com.driverapp.repartidor.domain.model.Pedido
@@ -8,7 +9,10 @@ import com.driverapp.repartidor.domain.repository.PedidoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class PedidoRepositoryImpl(private val api: PedidoApiService) : PedidoRepository {
+class PedidoRepositoryImpl(
+    private val api: PedidoApiService,
+    private val restaurantId: Int = BuildConfig.RESTAURANT_ID
+) : PedidoRepository {
 
     private val _available = MutableStateFlow<List<Pedido>>(emptyList())
     override val available: StateFlow<List<Pedido>> = _available
@@ -20,15 +24,15 @@ class PedidoRepositoryImpl(private val api: PedidoApiService) : PedidoRepository
     override val activeOrder: StateFlow<Pedido?> = _activeOrder
 
     override suspend fun refreshAvailable() {
-        _available.value = api.availableOrders().map { it.toDomain() }
+        _available.value = api.availableOrders(restaurantId).map { it.toDomain() }
     }
 
     override suspend fun refreshHistory() {
-        _history.value = api.orderHistory().map { it.toDomain() }
+        _history.value = api.orderHistory(restaurantId).map { it.toDomain() }
     }
 
     override suspend fun refreshActive() {
-        api.myOrders().map { it.toDomain() }.firstOrNull()?.let { _activeOrder.value = it }
+        api.myOrders(restaurantId).map { it.toDomain() }.firstOrNull()?.let { _activeOrder.value = it }
     }
 
     override suspend fun detail(id: Long): Pedido = api.orderDetail(id).toDomain()

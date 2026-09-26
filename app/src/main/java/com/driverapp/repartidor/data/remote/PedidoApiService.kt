@@ -13,13 +13,13 @@ import retrofit2.http.Query
 interface PedidoApiService {
 
     @GET("api/v1/orders/available")
-    suspend fun availableOrders(): List<PedidoDto>
+    suspend fun availableOrders(@Query("restaurant_id") restaurantId: Int? = null): List<PedidoDto>
 
     @GET("api/v1/orders/my")
-    suspend fun myOrders(): List<PedidoDto>
+    suspend fun myOrders(@Query("restaurant_id") restaurantId: Int? = null): List<PedidoDto>
 
     @GET("api/v1/orders/history")
-    suspend fun orderHistory(): List<PedidoDto>
+    suspend fun orderHistory(@Query("restaurant_id") restaurantId: Int? = null): List<PedidoDto>
 
     @GET("api/v1/orders/{id}")
     suspend fun orderDetail(@Path("id") id: Long): PedidoDto

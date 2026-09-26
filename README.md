@@ -1,8 +1,9 @@
-# DriverApp Repartidor — App Android (Kotlin)
+# SUMAQ Repartidor — App Android (Kotlin)
 
-App móvil del **repartidor** del sistema DriverApp (entregas a domicilio).
-Parte de un sistema de 3 componentes: backend FastAPI (`:8084`), dashboard
-web-admin (`:3000`) y esta app.
+App móvil del **repartidor del restaurante SUMAQ** (cocina peruana).
+El dashboard recibe pedidos de platillos del catálogo y el repartidor los
+entrega con esta app. Parte de un sistema de 3 componentes: backend FastAPI
+(`:8084`), dashboard web-admin (`:3000`) y esta app.
 
 ## Resumen
 
@@ -27,8 +28,10 @@ Login ──► Órdenes ──► Mapa ──► Ganancias / Perfil
 1. **Login** (`ui/login`): si Firebase está configurado usa
    `signInWithEmailAndPassword`; si no, modo dev (el backend usa la parte
    local del correo como UID). El token se guarda cifrado.
-2. **Órdenes** (`ui/orders`): lista *Asignados* (disponibles) e *Historial*,
-   con detalle inline, diálogos de confirmación y reintento ante sin-conexión.
+2. **Órdenes** (`ui/orders`): lista *Asignados* (disponibles de SUMAQ) e
+   *Historial*, con detalle inline que muestra cada platillo
+   (`cantidad × nombre — descripción` + notas), diálogos de confirmación y
+   reintento ante sin-conexión.
 3. **Mapa** (`ui/tracking`): marcadores de restaurante, cliente y posición GPS;
    ETA/distancia calculados con `Geo` + velocidad del vehículo o del GPS.
    Al completar, se refrescan historial y ganancias.
@@ -105,6 +108,7 @@ Requisitos: JDK 17, Android SDK Platform 34, Gradle 8.6 + AGP 8.4.0
 | Clave | Dónde | Valor actual |
 |---|---|---|
 | `API_BASE_URL` | `app/build.gradle.kts` | `http://169.58.190.93:8084/` (backend) |
+| `RESTAURANT_ID` / `RESTAURANT_NAME` | `app/build.gradle.kts` | `5` / `SUMAQ` (la app solo ve pedidos del restaurante) |
 | `FIREBASE_*` | `app/build.gradle.kts` | vacías = modo dev (sin `google-services.json`) |
 
 - **Emulador apuntando a tu PC**: `http://10.0.2.2:8084/`.

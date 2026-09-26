@@ -167,10 +167,13 @@ class OrdersFragment : Fragment() {
     private fun renderItems(container: android.widget.LinearLayout, order: Pedido) {
         container.removeAllViews()
         order.items.forEach { item ->
+            val block = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setPadding(0, 6, 0, 6)
+            }
             val row = LinearLayoutCompat(requireContext())
             row.orientation = android.widget.LinearLayout.HORIZONTAL
             row.gravity = android.view.Gravity.CENTER_VERTICAL
-            row.setPadding(0, 6, 0, 6)
             val name = TextView(requireContext()).apply {
                 text = "${item.quantity}× ${item.productName}"
                 textSize = 13f
@@ -186,7 +189,17 @@ class OrdersFragment : Fragment() {
             }
             row.addView(name)
             row.addView(price)
-            container.addView(row)
+            block.addView(row)
+            val detail = listOfNotNull(item.description, item.notes?.let { "Nota: $it" })
+                .joinToString("\n").takeIf { it.isNotBlank() }
+            if (detail != null) {
+                block.addView(TextView(requireContext()).apply {
+                    text = detail
+                    textSize = 11f
+                    setTextColor(ContextCompat.getColor(requireContext(), R.color.text_muted))
+                })
+            }
+            container.addView(block)
         }
     }
 

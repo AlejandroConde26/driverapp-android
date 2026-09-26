@@ -1,6 +1,7 @@
 package com.driverapp.repartidor
 
 import com.driverapp.repartidor.data.remote.dto.PedidoDto
+import com.driverapp.repartidor.data.remote.dto.PedidoItemDto
 import com.driverapp.repartidor.domain.model.EstadoPedido
 import com.driverapp.repartidor.domain.model.Pedido
 import com.driverapp.repartidor.domain.model.User
@@ -31,7 +32,7 @@ fun samplePedido() = Pedido(
 
 fun samplePedidoDto() = PedidoDto(
     id = 10,
-    restaurantId = 1,
+    restaurantId = 5,
     driverId = null,
     clientName = "Ana López",
     clientAddress = "Calle Falsa 123",
@@ -39,5 +40,16 @@ fun samplePedidoDto() = PedidoDto(
     destLng = -99.1332,
     status = "PENDIENTE",
     total = 150.0,
-    deliveryFee = 25.0
+    deliveryFee = 25.0,
+    items = listOf(
+        PedidoItemDto(
+            id = 1,
+            menuItemId = 2,
+            productName = "Ceviche Clásico",
+            description = "Pesca del día marinada en limón.",
+            quantity = 2,
+            unitPrice = 32.0,
+            notes = "Sin picante"
+        )
+    )
 )

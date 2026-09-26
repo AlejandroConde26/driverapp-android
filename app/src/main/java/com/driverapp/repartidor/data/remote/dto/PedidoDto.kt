@@ -26,12 +26,21 @@ data class RestauranteDto(
 
 data class PedidoItemDto(
     val id: Int = 0,
+    @SerializedName("menu_item_id") val menuItemId: Int? = null,
     @SerializedName("product_name") val productName: String,
+    val description: String? = null,
     val quantity: Int,
-    @SerializedName("unit_price") val unitPrice: Double
+    @SerializedName("unit_price") val unitPrice: Double,
+    val notes: String? = null
 ) {
     fun toDomain(): PedidoItem = PedidoItem(
-        id = id, productName = productName, quantity = quantity, unitPrice = unitPrice
+        id = id,
+        menuItemId = menuItemId,
+        productName = productName,
+        description = description,
+        quantity = quantity,
+        unitPrice = unitPrice,
+        notes = notes
     )
 }
 

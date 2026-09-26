@@ -250,7 +250,13 @@ class TrackingFragment : Fragment() {
             vm.showMessage("La orden no tiene items (pedido directo)")
             return
         }
-        val lines = order.items.map { "${it.quantity}× ${it.productName}" }
+        val lines = order.items.map { item ->
+            buildString {
+                append("${item.quantity}× ${item.productName}")
+                if (!item.description.isNullOrBlank()) append("\n${item.description}")
+                if (!item.notes.isNullOrBlank()) append("\nNota: ${item.notes}")
+            }
+        }
         AlertDialog.Builder(requireContext())
             .setTitle("Items de la orden #${order.id}")
             .setItems(lines.toTypedArray(), null)

@@ -18,7 +18,7 @@ class PedidoRepositoryImplTest {
 
     @Test
     fun `refreshAvailable mapea DTO a dominio`() = runTest {
-        coEvery { api.availableOrders() } returns listOf(samplePedidoDto())
+        coEvery { api.availableOrders(any()) } returns listOf(samplePedidoDto())
 
         repo.refreshAvailable()
 
@@ -27,6 +27,9 @@ class PedidoRepositoryImplTest {
         assertEquals(10, pedidos[0].id)
         assertEquals(EstadoPedido.PENDIENTE, pedidos[0].estado)
         assertEquals("Ana López", pedidos[0].clientName)
+        assertEquals(1, pedidos[0].items.size)
+        assertEquals("Ceviche Clásico", pedidos[0].items[0].productName)
+        assertEquals("Pesca del día marinada en limón.", pedidos[0].items[0].description)
     }
 
     @Test

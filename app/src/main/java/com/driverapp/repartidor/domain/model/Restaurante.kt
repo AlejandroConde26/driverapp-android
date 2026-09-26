@@ -12,9 +12,12 @@ data class Restaurante(
 
 data class PedidoItem(
     val id: Int = 0,
+    val menuItemId: Int? = null,
     val productName: String,
+    val description: String? = null,
     val quantity: Int,
-    val unitPrice: Double
+    val unitPrice: Double,
+    val notes: String? = null
 )
 
 data class ConductorBrief(
