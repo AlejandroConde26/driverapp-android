@@ -18,6 +18,9 @@ android {
             "API_BASE_URL",
             "\"http://169.58.190.93:8084/\""
         )
+        // Restaurante fijo de esta app (SUMAQ). Los pedidos se filtran por este id.
+        buildConfigField("String", "RESTAURANT_NAME", "\"SUMAQ\"")
+        buildConfigField("int", "RESTAURANT_ID", "5")
         // Rellena estos valores con tu proyecto Firebase (o deja vacío: login usará DEV_MODE)
         buildConfigField("String", "FIREBASE_API_KEY", "\"\"")
         buildConfigField("String", "FIREBASE_APP_ID", "\"\"")

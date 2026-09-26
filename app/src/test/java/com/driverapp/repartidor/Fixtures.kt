@@ -32,7 +32,7 @@ fun samplePedido() = Pedido(
 
 fun samplePedidoDto() = PedidoDto(
     id = 10,
-    restaurantId = 1,
+    restaurantId = 5,
     driverId = null,
     clientName = "Ana López",
     clientAddress = "Calle Falsa 123",
