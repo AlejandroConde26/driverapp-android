@@ -1,6 +1,5 @@
 package com.driverapp.repartidor.data.repository
 
-import com.driverapp.repartidor.BuildConfig
 import com.driverapp.repartidor.data.remote.PedidoApiService
 import com.driverapp.repartidor.domain.model.Ganancia
 import com.driverapp.repartidor.domain.model.Pedido
@@ -11,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class PedidoRepositoryImpl(
     private val api: PedidoApiService,
-    private val restaurantId: Int = BuildConfig.RESTAURANT_ID
+    private val restaurantId: Int? = null
 ) : PedidoRepository {
 
     private val _available = MutableStateFlow<List<Pedido>>(emptyList())

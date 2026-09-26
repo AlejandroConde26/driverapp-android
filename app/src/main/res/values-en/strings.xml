@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DriverApp</string>
+    <string name="app_name">Yallego</string>
     <string name="login_subtitle">Delivery Platform</string>
     <string name="email_label">Email or Username</string>
     <string name="password_label">Password</string>

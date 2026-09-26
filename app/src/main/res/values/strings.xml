@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DriverApp</string>
+    <string name="app_name">Yallego</string>
     <string name="login_subtitle">Plataforma de Repartidores</string>
     <string name="email_label">Correo o Usuario</string>
     <string name="password_label">Contraseña</string>
