@@ -52,6 +52,11 @@ class EarningsFragment : Fragment() {
             }
         }
 
+        binding.balanceToggle.setOnClickListener {
+            vm.toggleBalance()
+            render(vm.earnings.value)
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { vm.earnings.collect { render(it) } }
@@ -80,7 +85,7 @@ class EarningsFragment : Fragment() {
 
     private fun render(summary: ResumenGanancias?) {
         if (summary == null) {
-            binding.earningsTotal.text = "$0.00"
+            binding.earningsTotal.text = masked("$0.00")
             binding.ordersCount.text = "0"
             binding.connectedTime.text = "0:00 hrs"
             binding.tipsTotal.text = "$0.00"
@@ -92,7 +97,7 @@ class EarningsFragment : Fragment() {
             binding.legendOther.text = "Otros · $0.00"
             return
         }
-        binding.earningsTotal.text = "$" + String.format(Locale.ROOT, "%.2f", summary.total)
+        binding.earningsTotal.text = masked("$" + String.format(Locale.ROOT, "%.2f", summary.total))
         binding.ordersCount.text = "${summary.ordersCount}"
         binding.connectedTime.text = "-- hrs"
         binding.tipsTotal.text = "$" + String.format(Locale.ROOT, "%.2f", summary.tipsTotal)
@@ -121,6 +126,9 @@ class EarningsFragment : Fragment() {
         binding.legendBonuses.text = "Bonos · $${"%.2f".format(summary.bonusesTotal)}"
         binding.legendOther.text = "Otros · $${"%.2f".format(other)}"
     }
+
+    private fun masked(amount: String): String =
+        if (vm.prefs.showBalance) amount else "$••••••"
 
     private val density: Float by lazy { resources.displayMetrics.density }
 

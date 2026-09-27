@@ -101,7 +101,7 @@ class AppContainer(context: Context) {
     }
 
     fun earningsViewModelFactory() = ViewModelFactory {
-        EarningsViewModel(obtenerGanancias, historialGanancias, messenger)
+        EarningsViewModel(obtenerGanancias, historialGanancias, messenger, userPreferences)
     }
 
     fun profileViewModelFactory() = ViewModelFactory {

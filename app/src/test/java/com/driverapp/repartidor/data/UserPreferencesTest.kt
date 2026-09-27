@@ -41,6 +41,7 @@ class UserPreferencesTest {
         assertTrue(prefs.notificationsEnabled)
         assertTrue(prefs.locationEnabled)
         assertTrue(prefs.notificationSound)
+        assertTrue(prefs.showBalance)
         assertEquals(UserPreferences.LANG_ES, prefs.language)
     }
 
@@ -52,12 +53,14 @@ class UserPreferencesTest {
         prefs.notificationsEnabled = false
         prefs.locationEnabled = false
         prefs.notificationSound = false
+        prefs.showBalance = false
         prefs.language = UserPreferences.LANG_EN
 
         assertTrue(prefs.darkMode)
         assertFalse(prefs.notificationsEnabled)
         assertFalse(prefs.locationEnabled)
         assertFalse(prefs.notificationSound)
+        assertFalse(prefs.showBalance)
         assertEquals(UserPreferences.LANG_EN, prefs.language)
     }
 }

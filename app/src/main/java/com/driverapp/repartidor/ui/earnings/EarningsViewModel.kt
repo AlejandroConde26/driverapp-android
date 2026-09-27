@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.driverapp.repartidor.domain.model.Ganancia
 import com.driverapp.repartidor.domain.model.ResumenGanancias
+import com.driverapp.repartidor.data.local.UserPreferences
 import com.driverapp.repartidor.domain.usecase.ObtenerGananciasUseCase
 import com.driverapp.repartidor.domain.usecase.ObtenerHistorialGananciasUseCase
 import com.driverapp.repartidor.ui.common.LoadingState
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 class EarningsViewModel(
     private val resumen: ObtenerGananciasUseCase,
     private val historial: ObtenerHistorialGananciasUseCase,
-    private val messenger: UiMessenger
+    private val messenger: UiMessenger,
+    val prefs: UserPreferences
 ) : ViewModel() {
 
     private val _earnings = MutableStateFlow<ResumenGanancias?>(null)
@@ -41,5 +43,11 @@ class EarningsViewModel(
         viewModelScope.launch {
             _earningsHistory.value = runCatching { historial() }.getOrDefault(emptyList())
         }
+    }
+
+    fun toggleBalance() {
+        prefs.showBalance = !prefs.showBalance
+        // Re-emite el resumen actual para que la UI aplique la máscara al instante.
+        _earnings.value = _earnings.value
     }
 }

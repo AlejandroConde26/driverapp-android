@@ -26,6 +26,10 @@ class UserPreferences(
         get() = prefs.getBoolean(KEY_SOUND, true)
         set(value) = prefs.edit().putBoolean(KEY_SOUND, value).apply()
 
+    var showBalance: Boolean
+        get() = prefs.getBoolean(KEY_BALANCE, true)
+        set(value) = prefs.edit().putBoolean(KEY_BALANCE, value).apply()
+
     var language: String
         get() = prefs.getString(KEY_LANG, LANG_ES) ?: LANG_ES
         set(value) = prefs.edit().putString(KEY_LANG, value).apply()
@@ -38,6 +42,7 @@ class UserPreferences(
         private const val KEY_NOTIF = "notifications"
         private const val KEY_LOCATION = "location"
         private const val KEY_SOUND = "sound"
+        private const val KEY_BALANCE = "show_balance"
         private const val KEY_LANG = "language"
     }
 }
