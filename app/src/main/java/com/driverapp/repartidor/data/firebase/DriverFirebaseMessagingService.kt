@@ -42,7 +42,7 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
 
         val prefs = (application as? App)?.container?.userPreferences
         val notification = NotificationCompat.Builder(this, "orders")
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notif)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
