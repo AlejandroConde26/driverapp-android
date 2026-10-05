@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_orders -> {
                     showFragment(ordersFrag)
-                    bindHeader(getString(R.string.hello_user, firstName()), getString(R.string.subtitle_orders))
+                    bindHeader(getString(R.string.hello_user, firstName()), getString(R.string.subtitle_orders), true)
                     ordersVm.loadAll()
                     true
                 }
@@ -139,9 +139,10 @@ class MainActivity : AppCompatActivity() {
     private fun firstName(): String =
         vm.user.value?.name?.trim()?.split(" ")?.firstOrNull()?.takeIf { it.isNotBlank() } ?: "Repartidor"
 
-    private fun bindHeader(title: String, subtitle: String) {
+    private fun bindHeader(title: String, subtitle: String, showIcon: Boolean = false) {
         binding.headerTitle.text = title
         binding.headerSubtitle.text = subtitle
+        binding.headerIcon.isVisible = showIcon
     }
 
     private fun showFragment(fragment: Fragment) {

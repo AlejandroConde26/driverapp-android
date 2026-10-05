@@ -1,8 +1,8 @@
 package com.driverapp.repartidor.ui.orders
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -36,11 +36,14 @@ class OrdersAdapter(
         b.orderId.text = "Orden #${order.id}"
         b.orderPrice.text = "$" + String.format(Locale.ROOT, "%.2f", order.total)
         b.orderPrice.setTextColor(
-            when (order.estado) {
-                EstadoPedido.ENTREGADO -> Color.rgb(16, 185, 129)
-                EstadoPedido.RECHAZADO, EstadoPedido.CANCELADO -> Color.rgb(107, 114, 128)
-                else -> Color.rgb(229, 57, 53)
-            }
+            ContextCompat.getColor(
+                holder.itemView.context,
+                when (order.estado) {
+                    EstadoPedido.ENTREGADO -> R.color.success
+                    EstadoPedido.RECHAZADO, EstadoPedido.CANCELADO -> R.color.text_muted
+                    else -> R.color.text_main
+                }
+            )
         )
         b.orderAvatar.text = order.clientName.take(2).uppercase(Locale.ROOT)
         b.orderClient.text = order.clientName
@@ -53,7 +56,10 @@ class OrdersAdapter(
             if (order.paymentMethod == "Tarjeta") R.drawable.bg_badge_blue else R.drawable.bg_badge_green
         )
         b.metaPayment.setTextColor(
-            if (order.paymentMethod == "Tarjeta") Color.rgb(59, 130, 246) else Color.rgb(16, 185, 129)
+            ContextCompat.getColor(
+                holder.itemView.context,
+                if (order.paymentMethod == "Tarjeta") R.color.info else R.color.success
+            )
         )
 
         val (h, m) = order.estTimeMin / 60 to order.estTimeMin % 60
@@ -69,7 +75,7 @@ class OrdersAdapter(
             b.statusBadge.isVisible = true
             b.statusBadge.text = "Aceptado"
             b.statusBadge.setBackgroundResource(R.drawable.bg_badge_green)
-            b.statusBadge.setTextColor(Color.rgb(16, 185, 129))
+            b.statusBadge.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.success))
             b.btnTrack.isVisible = true
             b.btnTrack.setOnClickListener { onTrack(order) }
         } else if (isHistory) {
@@ -80,11 +86,11 @@ class OrdersAdapter(
             if (order.estado == EstadoPedido.ENTREGADO) {
                 b.statusBadge.text = "Entregado"
                 b.statusBadge.setBackgroundResource(R.drawable.bg_badge_green)
-                b.statusBadge.setTextColor(Color.rgb(16, 185, 129))
+                b.statusBadge.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.success))
             } else {
                 b.statusBadge.text = "Rechazado"
                 b.statusBadge.setBackgroundResource(R.drawable.bg_badge_red)
-                b.statusBadge.setTextColor(Color.rgb(239, 68, 68))
+                b.statusBadge.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.primary))
             }
         } else {
             b.cardRoot.setBackgroundResource(R.drawable.bg_card)

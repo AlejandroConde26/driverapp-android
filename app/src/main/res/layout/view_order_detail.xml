@@ -348,6 +348,7 @@
         android:orientation="horizontal">
 
         <Button
+            app:backgroundTint="@null"
             android:id="@+id/detailReject"
             android:layout_width="0dp"
             android:layout_height="48dp"
@@ -362,6 +363,7 @@
             android:textStyle="bold" />
 
         <Button
+            app:backgroundTint="@null"
             android:id="@+id/detailAccept"
             android:layout_width="0dp"
             android:layout_height="48dp"
@@ -371,7 +373,7 @@
             android:padding="0dp"
             android:text="@string/accept"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="@color/on_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>

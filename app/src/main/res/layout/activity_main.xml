@@ -23,6 +23,18 @@
             android:paddingEnd="20dp"
             android:paddingBottom="14dp">
 
+            <ImageView
+                android:id="@+id/headerIcon"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:contentDescription="@string/tab_orders"
+                android:padding="7dp"
+                android:src="@drawable/ic_fa_circle_user"
+                android:visibility="gone"
+                app:tint="@color/text_main" />
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

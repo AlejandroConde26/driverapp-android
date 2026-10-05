@@ -26,7 +26,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Ganancias de Hoy"
-                android:textColor="@color/white"
+                android:textColor="@color/on_primary"
                 android:textSize="13sp" />
 
             <LinearLayout
@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="$0.00"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_primary"
                     android:textSize="32sp"
                     android:textStyle="bold" />
 
@@ -53,7 +53,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="Mostrar u ocultar saldo"
                     android:src="@drawable/ic_fa_eye"
-                    app:tint="@color/white" />
+                    app:tint="@color/on_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -74,7 +74,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textColor="@color/white"
+                        android:textColor="@color/on_primary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -82,7 +82,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Pedidos"
-                        android:textColor="@color/white"
+                        android:textColor="@color/on_primary"
                         android:alpha="0.85"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -104,7 +104,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="— hrs"
-                        android:textColor="@color/white"
+                        android:textColor="@color/on_primary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -112,7 +112,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Tiempo Conectado"
-                        android:textColor="@color/white"
+                        android:textColor="@color/on_primary"
                         android:alpha="0.85"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -134,7 +134,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="$0.00"
-                        android:textColor="@color/white"
+                        android:textColor="@color/on_primary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -142,7 +142,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Propinas"
-                        android:textColor="@color/white"
+                        android:textColor="@color/on_primary"
                         android:alpha="0.85"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -167,6 +167,7 @@
                 android:padding="4dp">
 
                 <Button
+            app:backgroundTint="@null"
                     android:id="@+id/filterDay"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -175,11 +176,12 @@
                     android:padding="0dp"
                     android:text="Hoy"
                     android:textAllCaps="false"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_primary"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <Button
+            app:backgroundTint="@null"
                     android:id="@+id/filterWeek"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -193,6 +195,7 @@
                     android:textStyle="bold" />
 
                 <Button
+            app:backgroundTint="@null"
                     android:id="@+id/filterMonth"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -206,6 +209,7 @@
                     android:textStyle="bold" />
 
                 <Button
+            app:backgroundTint="@null"
                     android:id="@+id/filterYear"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"

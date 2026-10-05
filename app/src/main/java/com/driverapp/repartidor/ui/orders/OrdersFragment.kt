@@ -1,6 +1,5 @@
 package com.driverapp.repartidor.ui.orders
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -103,8 +102,8 @@ class OrdersFragment : Fragment() {
         val assigned = index == 0
         binding.tabAssigned.setBackgroundResource(if (assigned) R.drawable.bg_pill_active else android.R.color.transparent)
         binding.tabHistory.setBackgroundResource(if (assigned) android.R.color.transparent else R.drawable.bg_pill_active)
-        binding.tabAssigned.setTextColor(ContextCompat.getColor(requireContext(), if (assigned) R.color.white else R.color.text_muted))
-        binding.tabHistory.setTextColor(ContextCompat.getColor(requireContext(), if (assigned) R.color.text_muted else R.color.white))
+        binding.tabAssigned.setTextColor(ContextCompat.getColor(requireContext(), if (assigned) R.color.on_primary else R.color.text_muted))
+        binding.tabHistory.setTextColor(ContextCompat.getColor(requireContext(), if (assigned) R.color.text_muted else R.color.on_primary))
         binding.recycler.scrollToPosition(0)
         updateTabLabels()
         if (index == 0) {
@@ -150,7 +149,12 @@ class OrdersFragment : Fragment() {
             d.detailStatus.isVisible = true
             d.detailStatus.text = if (order.estado == EstadoPedido.ENTREGADO) "Entregado" else "Rechazado"
             d.detailStatus.setBackgroundResource(if (order.estado == EstadoPedido.ENTREGADO) R.drawable.bg_badge_green else R.drawable.bg_badge_red)
-            d.detailStatus.setTextColor(if (order.estado == EstadoPedido.ENTREGADO) Color.rgb(16, 185, 129) else Color.rgb(239, 68, 68))
+            d.detailStatus.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (order.estado == EstadoPedido.ENTREGADO) R.color.success else R.color.primary
+                )
+            )
             d.detailAccept.isVisible = false
             d.detailReject.isVisible = false
         } else {
@@ -233,7 +237,7 @@ class OrdersFragment : Fragment() {
             confirmText = "Aceptar",
             icon = R.drawable.ic_fa_circle_check,
             iconBg = R.drawable.bg_icon_green,
-            iconTint = Color.rgb(16, 185, 129),
+            iconTint = ContextCompat.getColor(requireContext(), R.color.success),
             confirmStyle = false,
         ) {
             vm.accept(order) {
@@ -253,7 +257,7 @@ class OrdersFragment : Fragment() {
             confirmText = "Rechazar",
             icon = R.drawable.ic_fa_circle_exclamation,
             iconBg = R.drawable.bg_icon_red,
-            iconTint = Color.rgb(229, 57, 53),
+            iconTint = ContextCompat.getColor(requireContext(), R.color.primary),
         ) {
             vm.reject(order)
             currentDetail = null

@@ -49,7 +49,7 @@ class PieView @JvmOverloads constructor(
         val nightModeFlags = context.resources.configuration.uiMode and
             android.content.res.Configuration.UI_MODE_NIGHT_MASK
         return if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
-            Color.rgb(55, 65, 81)
+            Color.rgb(0x11, 0x11, 0x11)
         } else {
             Color.WHITE
         }

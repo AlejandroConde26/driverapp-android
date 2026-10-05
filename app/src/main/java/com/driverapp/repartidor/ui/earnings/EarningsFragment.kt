@@ -1,6 +1,5 @@
 package com.driverapp.repartidor.ui.earnings
 
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
@@ -77,7 +76,7 @@ class EarningsFragment : Fragment() {
             p.setTextColor(
                 ContextCompat.getColor(
                     requireContext(),
-                    if (active) R.color.white else R.color.text_muted
+                    if (active) R.color.on_primary else R.color.text_muted
                 )
             )
         }
@@ -171,15 +170,18 @@ class EarningsFragment : Fragment() {
 
     private fun renderPie(deliveries: Float, tips: Float, bonuses: Float) {
         val total = deliveries + tips + bonuses
+        val ctx = requireContext()
         if (total <= 0f) {
-            binding.pieView.segments = listOf(1f to Color.rgb(226, 232, 240))
+            binding.pieView.segments = listOf(
+                1f to ContextCompat.getColor(ctx, R.color.primary_light)
+            )
             return
         }
         binding.pieView.segments = listOf(
-            deliveries to Color.rgb(229, 57, 53),
-            tips to Color.rgb(16, 185, 129),
-            bonuses to Color.rgb(59, 130, 246),
-            (total * 0.08f).coerceAtMost(1f) to Color.rgb(107, 114, 128)
+            deliveries to ContextCompat.getColor(ctx, R.color.text_main),
+            tips to ContextCompat.getColor(ctx, R.color.text_muted),
+            bonuses to ContextCompat.getColor(ctx, R.color.info),
+            (total * 0.08f).coerceAtMost(1f) to ContextCompat.getColor(ctx, R.color.border)
         )
     }
 
@@ -205,10 +207,15 @@ class EarningsFragment : Fragment() {
     }
 
     private fun barColor(idx: Int): Int {
+        val ctx = requireContext()
         val colors = listOf(
-            Color.rgb(229, 57, 53), Color.rgb(239, 68, 68), Color.rgb(245, 158, 11),
-            Color.rgb(59, 130, 246), Color.rgb(16, 185, 129), Color.rgb(236, 72, 153),
-            Color.rgb(139, 92, 246)
+            ContextCompat.getColor(ctx, R.color.text_main),
+            ContextCompat.getColor(ctx, R.color.info),
+            ContextCompat.getColor(ctx, R.color.text_muted),
+            ContextCompat.getColor(ctx, R.color.text_main),
+            ContextCompat.getColor(ctx, R.color.info),
+            ContextCompat.getColor(ctx, R.color.text_muted),
+            ContextCompat.getColor(ctx, R.color.text_main)
         )
         return colors[idx.coerceIn(0, 6)]
     }

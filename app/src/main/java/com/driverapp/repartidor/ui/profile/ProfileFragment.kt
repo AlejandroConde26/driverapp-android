@@ -43,7 +43,7 @@ class ProfileFragment : Fragment() {
                 confirmText = "Cerrar sesión",
                 icon = R.drawable.ic_fa_right_from_bracket,
                 iconBg = R.drawable.bg_icon_red,
-                iconTint = android.graphics.Color.rgb(229, 57, 53),
+                iconTint = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary),
             ) {
                 vm.logout()
                 startActivity(Intent(requireContext(), LoginActivity::class.java))

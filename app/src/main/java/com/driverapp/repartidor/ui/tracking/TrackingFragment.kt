@@ -197,14 +197,14 @@ class TrackingFragment : Fragment() {
                 position = geo
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 title = order.restaurant?.name
-                icon = tintedIcon(R.drawable.ic_fa_shop, android.graphics.Color.rgb(229, 57, 53))
+                icon = tintedIcon(R.drawable.ic_fa_shop, androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_main))
             })
         }
         binding.mapView.overlays.add(Marker(binding.mapView).apply {
             position = dest
             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
             title = order.clientName
-            icon = tintedIcon(R.drawable.ic_fa_location_dot, android.graphics.Color.rgb(59, 130, 246))
+                icon = tintedIcon(R.drawable.ic_fa_location_dot, androidx.core.content.ContextCompat.getColor(requireContext(), R.color.info))
         })
         val center = if (origin != null) {
             GeoPoint((origin.latitude + dest.latitude) / 2.0, (origin.longitude + dest.longitude) / 2.0)
@@ -222,7 +222,7 @@ class TrackingFragment : Fragment() {
                 position = GeoPoint(loc.lat, loc.lng)
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                 title = "Mi ubicación"
-                icon = tintedIcon(R.drawable.ic_fa_map_location_dot, android.graphics.Color.rgb(59, 130, 246))
+                icon = tintedIcon(R.drawable.ic_fa_map_location_dot, androidx.core.content.ContextCompat.getColor(requireContext(), R.color.info))
             }
             map.overlays.add(currentMarker!!)
         } else {
@@ -273,7 +273,7 @@ class TrackingFragment : Fragment() {
             confirmText = "Sí, entregado",
             icon = R.drawable.ic_fa_circle_check,
             iconBg = R.drawable.bg_icon_green,
-            iconTint = android.graphics.Color.rgb(16, 185, 129),
+            iconTint = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.success),
             confirmStyle = false,
         ) {
             vm.complete(order) {

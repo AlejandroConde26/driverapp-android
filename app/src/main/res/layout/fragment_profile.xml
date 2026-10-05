@@ -28,7 +28,7 @@
                 android:background="@drawable/bg_logo"
                 android:gravity="center"
                 android:text="JD"
-                android:textColor="@color/white"
+                android:textColor="@color/on_primary"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
@@ -761,6 +761,7 @@
         </LinearLayout>
 
         <Button
+            app:backgroundTint="@null"
             android:id="@+id/logoutButton"
             android:layout_width="match_parent"
             android:layout_height="50dp"
@@ -770,7 +771,7 @@
             android:drawablePadding="8dp"
             android:text="Cerrar Sesión"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="@color/on_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
     </LinearLayout>

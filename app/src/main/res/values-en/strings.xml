@@ -35,7 +35,7 @@
     <string name="pref_sound">Order Alert Sound</string>
     <string name="pref_language">Language</string>
     <string name="account_settings">Account Settings</string>
-    <string name="hello_user">Hi, %1$s! 👋</string>
+    <string name="hello_user">Hi, %1$s!</string>
     <string name="my_earnings">My Earnings</string>
     <string name="my_profile">My Profile</string>
 </resources>

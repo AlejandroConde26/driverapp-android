@@ -13,7 +13,7 @@ class ConfirmDialog(
     private val confirmText: String = "Confirmar",
     private val icon: Int = R.drawable.ic_fa_circle_question,
     private val iconBg: Int = R.drawable.bg_icon_blue,
-    private val iconTint: Int = android.graphics.Color.rgb(59, 130, 246),
+    private val iconTint: Int = androidx.core.content.ContextCompat.getColor(context, R.color.info),
     private val confirmStyle: Boolean = true,
     private val onConfirm: () -> Unit = {},
 ) {
