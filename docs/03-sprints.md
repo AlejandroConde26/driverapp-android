@@ -1,4 +1,4 @@
-# DriverApp / SUMAQ — Planificación de sprints (4 sprints)
+# DriverApp / SUMAQ — Planificación de sprints (6 sprints)
 
 Sistema de 3 componentes: app Android (repartidor), backend FastAPI (`:8084`),
 dashboard web-admin (`:3000`). Las historias de usuario referenciadas viven en
@@ -69,6 +69,39 @@ Estado del pedido: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO` (o `RECH
 
 ---
 
+## Sprint 5 — Interfaz y navegación en Jetpack Compose
+**Objetivo (práctica de campo):** llevar la interfaz a **Jetpack Compose** con
+navegación declarativa, componentes principales y validaciones de formularios.
+
+- [x] Navegación `NavHost` (login→main) + `NavigationBar` (orders/map/earnings/profile) con back funcional.
+- [x] Catálogo de componentes reutilizables (`OrderCard`, `StatusPill`, `ToggleRow`, `PeriodPills`, `EarningsChart`, `ToastHost`, `ValidatedTextField`, `LoadingState`/`ErrorState`…).
+- [x] Validaciones de login (email regex, password ≥6, `isError`+`supportingText`, botón inhabilitado) y perfil (nombre, teléfono 7–15 dígitos, vehículo requerido).
+- [x] Mapa osmdroid vía `AndroidView`; tema B/N y es/en preservados; 16 tests en verde.
+- Detalle: `docs/05-sprint-interfaz-navegacion.md`.
+
+**Criterios de aceptación**
+- Navegación funcional entre las 4 pestañas con back correcto; validaciones
+  bloquean el envío inválido; componentes sin duplicación con el XML migrado.
+
+---
+
+## Sprint 6 — Persistencia local: DataStore, Room y patrón Repository
+**Objetivo (práctica de campo):** persistencia local con **DataStore**, **Room**
+y patrón **Repository** cache-first; entrega de evidencia de arquitectura MVVM.
+
+- [x] `UserPreferences` migrado a `PreferenceDataStore` (Flow, mismo contrato de claves); sesión cifrada intacta.
+- [x] `AppDatabase` v1 (`orders_cache`, `order_items_cache`, `earnings_cache`) + DAOs y migraciones.
+- [x] `PedidoRepositoryImpl` cache-first (local→red→caché) + repo de ganancias, inyectados en `AppContainer`.
+- [x] App funciona sin conexión leyendo la caché; `docs/04` y `README` actualizados (evidencia MVVM).
+- [x] 16 tests existentes + nuevos de DataStore/DAO/Repository en verde.
+- Detalle: `docs/06-sprint-persistencia-local.md` (entrega: 09 de octubre 23:59).
+
+**Criterios de aceptación**
+- Preferencias vía DataStore con mismos defaults; Room con TTL y migraciones;
+  lectura offline-first desde la caché; sesión cifrada sin cambios.
+
+---
+
 ## Trazabilidad a documentación
 | Artefacto | Documento |
 |---|---|
@@ -76,3 +109,5 @@ Estado del pedido: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO` (o `RECH
 | Requerimientos no funcionales | `docs/02-requerimientos-no-funcionales.md` |
 | Planificación de sprints | `docs/03-sprints.md` |
 | Arquitectura MVVM + modelo de datos local | `docs/04-arquitectura.md` |
+| Sprint 5 — interfaz y navegación Compose | `docs/05-sprint-interfaz-navegacion.md` |
+| Sprint 6 — persistencia local DataStore/Room | `docs/06-sprint-persistencia-local.md` |

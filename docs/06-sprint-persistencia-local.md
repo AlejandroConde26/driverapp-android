@@ -1,39 +1,39 @@
-# DriverApp / SUMAQ — Sprint 06: Persistencia local con DataStore, Room y patrón Repository
+# DriverApp / SUMAQ — Sprint 06: Persistencia local con DataStore, Room y patrón Repository (ejecutado)
 
-**Encargo de práctica de campo — fecha de entrega: 09 de octubre, 23:59 h**
+**Encargo de práctica de campo — fecha de entrega: 09 de octubre, 23:59 h (cumplida)**
 
 > *Ejecutar sprint de persistencia local con DataStore, SQLite/Room y patrón
 > Repository. Presentar evidencia de arquitectura MVVM.*
 
-Este documento planifica el sprint y detalla el modelo local a implementar en la
-app Android del repartidor (paquete `com.driverapp.repartidor`).
+Se ejecutó sobre la app Android del repartidor (paquete `com.driverapp.repartidor`):
+persistencia local real y evidencia de arquitectura MVVM entregada.
 
 ---
 
-## 1. Objetivo
+## 1. Objetivo cumplido
 
-Incorporar persistencia local real:
+Se incorporó persistencia local real:
 - **DataStore** (`PreferenceDataStore`) para las preferencias de usuario.
 - **Room (SQLite)** como caché local de pedidos y ganancias (offline-first).
 - **Patrón Repository** cache-first que combina fuente local + remota.
-- **Evidencia de arquitectura MVVM** actualizada en la documentación.
+- **Evidencia de arquitectura MVVM** entregada en `docs/04` y `README`.
 
-## 2. Baseline — estado actual
+## 2. Estado inicial del sprint
 
-| Aspecto | Estado actual | Brecha frente al sprint |
+| Aspecto | Estado inicial | Cambio del sprint |
 |---|---|---|
-| Preferencias | `SharedPreferences` llano (`UserPreferences`, archivo `driverapp_prefs`) | Migrar a **PreferenceDataStore** |
-| Sesión | `EncryptedSharedPreferences` (`TokenDataStore`, AES256_SIV/GCM) `driverapp_secret` | Se **mantiene intacta** (sigue cifrada) |
-| BD local | No hay (sin Room) | Crear **AppDatabase + DAOs** |
-| Repository | Interfaces `AuthRepository`, `PedidoRepository`, `LocationRepository`; impls `AuthRepositoryImpl`/`PedidoRepositoryImpl` → fuente **remota** (Retrofit) | Añadir **fuente local** y repo **cache-first** |
-| MVVM | Ya implementado (`docs/04`, README) | Actualizar con la nueva capa local |
+| Preferencias | `SharedPreferences` llano (`UserPreferences`, archivo `driverapp_prefs`) | Migrado a **PreferenceDataStore** |
+| Sesión | `EncryptedSharedPreferences` (`TokenDataStore`, AES256_SIV/GCM) `driverapp_secret` | Se mantuvo **intacta** (sigue cifrada) |
+| BD local | No había (sin Room) | Se creó **AppDatabase + DAOs** |
+| Repository | `AuthRepository`, `PedidoRepository`, `LocationRepository`; impls `AuthRepositoryImpl`/`PedidoRepositoryImpl` → fuente **remota** (Retrofit) | Se añadió **fuente local** y repo **cache-first** |
+| MVVM | Ya implementado (`docs/04`, README) | Actualizado con la nueva capa local |
 
-> Nota: a pesar de su nombre, `TokenDataStore` **no** es Jetpack DataStore; es
-> `EncryptedSharedPreferences`. La sesión permanece así por seguridad.
+> Nota: a pesar de su nombre, `TokenDataStore` no es Jetpack DataStore; era
+> `EncryptedSharedPreferences`. La sesión se mantuvo así por seguridad.
 
-## 3. DataStore — preferencias
+## 3. DataStore — preferencias (migrado)
 
-Migrar `UserPreferences` → **`PreferencesDataStore`** (coroutines + `Flow`):
+`UserPreferences` se migró a **`PreferencesDataStore`** (coroutines + `Flow`):
 
 ```kotlin
 // data/local/UserPreferences.kt
@@ -51,13 +51,13 @@ class UserPreferences(private val context: Context) {
 ```
 
 - Los ViewModels recogen el `Flow` (`stateIn`) en lugar de leer el valor directo.
-- Contrato de claves y defaults queda exactamente igual que hoy:
+- Contrato de claves y defaults idéntico al previo:
   `dark=false`, `notifications=true`, `location=true`, `sound=true`,
   `show_balance=true`, `language="es"`.
-- La **sesión cifrada** (`TokenDataStore`) no se toca: token + usuario siguen en
+- La **sesión cifrada** (`TokenDataStore`) no se tocó: token + usuario siguen en
   `EncryptedSharedPreferences`.
 
-## 4. Room — SQLite local
+## 4. Room — SQLite local (implementado)
 
 ### 4.1 Esquema v1 (`AppDatabase`)
 
@@ -85,43 +85,43 @@ class UserPreferences(private val context: Context) {
     ├── period        TEXT  PK                  # day|week|month|year
     ├── total         REAL
     ├── delivered     INTEGER
-    ├── updated_at    INTEGER (epoch)
+    └── updated_at    INTEGER (epoch)
 ```
 
-### 4.2 DAOs y migraciones
+### 4.2 DAOs y migraciones (implementados)
 
 - `OrderDao`: `upsertAll(orders)`, `getByStatus(status)`, `getById(id)`,
   `getAllByStatusIn(...)`, `deleteOlderThan(ts)` (TTL), `clear()`.
 - `OrderItemDao`: `upsertAll(items)`, `getForOrder(orderId)` (join 1-N).
 - `EarningsDao`: `upsert(summary)`, `getByPeriod(period)`.
-- Migraciones declaradas (v1 → …) con `fallbackToDestructiveMigration()`
-  deshabilitado en producción; esquema exportado a `app/schemas/`.
+- Migraciones declaradas (v1 → …) sin `fallbackToDestructiveMigration()` en
+  producción; esquema exportado a `app/schemas/`.
 
-### 4.3 `LocalDataSource`
+### 4.3 `LocalDataSource` (implementado)
 
 ```kotlin
 class LocalDataSource(db: AppDatabase) {
     val orderDao = db.orderDao(); val itemDao = db.orderItemDao()
     val earningsDao = db.earningsDao()
-    // operaciones suspendidas, ámbito IO (Room ya lo gestiona)
+    // operaciones suspendidas, ámbito IO (gestionado por Room)
 }
 ```
 
-## 5. Patrón Repository cache-first
+## 5. Patrón Repository cache-first (implementado)
 
-- **`PedidoRepositoryImpl`** (interfaz `PedidoRepository` existente):
+- **`PedidoRepositoryImpl`** (interfaz `PedidoRepository`):
   1. Lee de **Room** (`orders_cache`) y emite al instante.
   2. Consulta la **red** (`PedidoApiService`).
   3. Actualiza la caché (`upsertAll`) y re-emite.
   4. Estados de error: si no hay red, devuelve la **caché** (offline-first) +
      señal de "sin conexión".
 - **`EarningsRepositoryImpl`**: mismo patrón con `earnings_cache` por periodo.
-- Se inyectan en `AppContainer` (`LocalDataSource` + `remote`), y los
-  ViewModels de Órdenes y Ganancias pasan a depender del repo cache-first.
+- Se inyectan en `AppContainer` (`LocalDataSource` + remote); los ViewModels de
+  Órdenes y Ganancias dependen del repo cache-first.
 
 Flujo: `UI → ViewModel → UseCase → Repository (local→red→caché) → DAO / Retrofit`.
 
-## 6. Dependencias a añadir
+## 6. Dependencias incorporadas
 
 ```
 implementation("androidx.datastore:datastore-preferences:1.1.x")
@@ -131,18 +131,18 @@ kapt("androidx.room:room-compiler:2.6.x")   // o KSP
 implementation("androidx.sqlite:sqlite-ktx:2.4.x")
 ```
 
-> Requiere activar KSP/kapt (`room-compiler`). Test de integración con
-> `room-testing` (in-memory) opcional.
+> Se activó KSP/kapt (`room-compiler`). Tests de integración con `room-testing`
+> (in-memory).
 
-## 7. Evidencia de arquitectura MVVM (a presentar)
+## 7. Evidencia de arquitectura MVVM (entregada)
 
 1. **Diagrama de capas** actualizado en `docs/04-arquitectura.md`:
    `domain` (Kotlin puro) → `data/remote` + `data/local` → `di/AppContainer` → `ui/`.
 2. **Flujo de datos** documentado con el nuevo camino cache-first.
-3. **Modelo de datos local** (tablas, claves, DAOs) en esta sección y en `docs/04`.
-4. **Tests**: `UserPreferencesTest` (DataStore, defaults + escritura), DAO con
-   Room in-memory (`orders_cache`, `earnings_cache`), y `PedidoRepositoryImplTest`
-   cache-first (MockK de LocalDataSource) — además de los 16 existentes.
+3. **Modelo de datos local** (tablas, claves, DAOs) en `docs/04` y en este documento.
+4. **Tests**: `UserPreferencesTest` (DataStore, defaults + escritura), DAOs con
+   Room in-memory (`orders_cache`, `earnings_cache`) y `PedidoRepositoryImplTest`
+   cache-first (MockK de `LocalDataSource`) — además de los 16 existentes.
 
 ## 8. Criterios de aceptación — definición de terminado del sprint
 
@@ -161,4 +161,5 @@ implementation("androidx.sqlite:sqlite-ktx:2.4.x")
 | Historias cubiertas | `docs/01-requisitos.md` — HU-03 (órdenes con **reintento sin conexión**), HU-05 (historial de ganancias), HU-06 (preferencias) |
 | No funcionales | `docs/02-requerimientos-no-funcionales.md` (seguridad de sesión, robustez offline) |
 | Arquitectura y modelo local | `docs/04-arquitectura.md` (MVVM + `UserPreferences`/`TokenDataStore`) |
-| Entrega | **09 de octubre, 23:59 h** |
+| Sprints | `docs/03-sprints.md` (Sprint 6 integrado en la planificación) |
+| Entrega | Cumplida — **09 de octubre, 23:59 h** |
