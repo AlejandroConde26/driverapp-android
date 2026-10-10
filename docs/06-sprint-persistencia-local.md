@@ -144,7 +144,7 @@ implementation("androidx.sqlite:sqlite-ktx:2.4.x")
    Room in-memory (`orders_cache`, `earnings_cache`), y `PedidoRepositoryImplTest`
    cache-first (MockK de LocalDataSource) — además de los 16 existentes.
 
-## 8. Definición de terminado del sprint
+## 8. Criterios de aceptación — definición de terminado del sprint
 
 - [x] Preferencias leídas/escritas vía `PreferenceDataStore` (Flow), mismo contrato de claves.
 - [x] `AppDatabase` v1 con `orders_cache`, `order_items_cache`, `earnings_cache` + DAOs y migraciones.

@@ -90,7 +90,7 @@ implementation("androidx.navigation:navigation-compose:2.7.x")
   - Vehículo (`CARRO|BICICLETA|MOTO`): selección requerida al guardar.
 - **Preferencias**: switches booleanos (sin validación), idioma es/en.
 
-## 7. Definición de terminado del sprint
+## 7. Criterios de aceptación — definición de terminado del sprint
 
 - [x] Navegación `NavHost` + `NavigationBar` con back funcional entre las 4 pestañas.
 - [x] Componentes del catálogo reutilizables y sin duplicación con XML migrado.
