@@ -112,3 +112,4 @@ y patrón **Repository** cache-first; entrega de evidencia de arquitectura MVVM.
 | Sprint 5 — interfaz y navegación Compose | `docs/05-sprint-interfaz-navegacion.md` |
 | Sprint 6 — persistencia local DataStore/Room | `docs/06-sprint-persistencia-local.md` |
 | Backend — modelo de datos, API y seguridad | `docs/07-modelo-datos-backend.md` |
+| HU-01 Login con persistencia (informe) | `docs/08-informe-hu-login.md` |
