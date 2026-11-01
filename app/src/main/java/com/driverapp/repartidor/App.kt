@@ -3,6 +3,7 @@ package com.driverapp.repartidor
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
@@ -78,6 +79,10 @@ class App : Application() {
     }
 
     private fun createNotificationChannels() {
+        // NotificationChannel existe desde API 26; minSdk es 24, así que en Android 7
+        // no hay canales y hay que salir sin tocar la API nueva (antes crasheaba).
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
         val manager = getSystemService(NotificationManager::class.java)
 
         val orders = NotificationChannel(

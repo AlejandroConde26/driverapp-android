@@ -96,15 +96,39 @@ Desde `com.driverapp.repartidor` Google puede responder
 `API_KEY_ANDROID_PACKAGE_BLOCKED` / `auth/invalid-api-key`. `FirebaseConfig.packageHint()`
 deja ese aviso en el código.
 
-### Pasos para cerrarlo (5 minutos, en la consola)
+### Pasos para cerrarlo
 
-1. Firebase Console → proyecto `camarasproyectocdlatam` → *Add app* → Android →
-   package `com.driverapp.repartidor` → registrar.
-2. Copiar el nuevo `mobilesdk_app_id` a `FIREBASE_APP_ID` en `local.properties`.
-3. Firestore → *Create database* (modo producción) y reglas:
-   `match /drivers/{doc} { allow read, write: if request.auth != null; }`.
-4. Storage → *Get started* y reglas equivalentes para `deliveries/`.
-5. `./gradlew :app:assembleDebug` y probar login + comprobante en un dispositivo.
+Todo está automatizado en `scripts/firebase_s10.sh` (idempotente). Solo hacen falta las
+dos sesiones interactivas, que son tuyas:
+
+```bash
+npm install -g firebase-tools && firebase login
+yay -S google-cloud-cli && gcloud auth login
+```
+
+Y después:
+
+```bash
+./scripts/firebase_s10.sh setup     # crea proyecto, registra la app, escribe local.properties,
+                                    # habilita Email/Password, crea Firestore y despliega reglas
+./gradlew :app:assembleDebug
+./scripts/firebase_s10.sh verify    # Auth + Firestore + Storage por REST, sin dispositivo
+```
+
+`setup` hace, en orden: `firebase projects:create` → `apps:create ANDROID` con el package
+`com.driverapp.repartidor` → `apps:sdkconfig` → escribe las 4 claves en `local.properties`
+→ habilita `signIn.email` por la Admin API de Identity Toolkit → `gcloud firestore databases
+create` → `firebase deploy --only firestore:rules[,storage]`.
+
+`verify` firma un usuario de prueba por REST, escribe `drivers/{uid}` en Firestore y sube
+`deliveries/{uid}.jpg` a Storage. Es la evidencia de runtime que hoy falta, y **no necesita
+un teléfono**: usa el mismo backend que consume la app.
+
+Reglas versionadas en el repo: `firestore.rules` (cada repartidor solo su documento) y
+`storage.rules` (solo autenticados, <8 MB, `image/*`).
+
+Queda un único paso manual si el bucket no existe: *Storage → Get started* en la consola
+(la primera vez), y volver a correr `setup` para desplegar `storage.rules`.
 
 > Mientras eso no se haga, S10 queda como **"implementado, verificación pendiente"** y
 > no como cumplido: el criterio es no marcar `[x]` sin evidencia de ejecución.
