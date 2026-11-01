@@ -21,11 +21,13 @@ Estado del pedido: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO` (o `RECH
 | 6 | Persistencia local: DataStore, Room, Repository | ✅ | `OrderDaoTest` (6), `app/schemas/…/1.json` |
 | 7 | **S08** Integración con API REST y Retrofit | ✅ | 20/20 endpoints del `openapi.json`, `ApiErrorMapperTest` |
 | 8 | **S09** CRUD, errores, estados y conectividad | ✅ | cola offline + `OrdersViewModelTest` (6) |
-| 9 | **S10** Firebase: Auth, Firestore, Storage | ⚠️ ² | código + degradación sin credenciales |
+| 9 | **S10** Firebase: Auth, Firestore, Storage | 🟠 ² | Auth verificado (idToken real); Firestore pendiente de reglas; Storage fuera por plan |
 
 ¹ El push FCM sólo funciona con un proyecto Firebase válido (ver sprint 9).
-² Implementado y compilado; la prueba en runtime queda pendiente de registrar el
-package en la consola de Firebase (`docs/S10-integracion-firebase.md` §5).
+² Auth verificado en runtime contra el proyecto real (`idToken` de 974 caracteres). Firestore
+existe pero necesita que se publiquen `firestore.rules` (hoy responde 403). Storage queda fuera
+de alcance: los proyectos Firebase nuevos exigen el plan Blaze para crear un bucket, y se decidió
+no activarlo; el código está listo y el botón del comprobante se oculta cuando no hay bucket.
 
 Resultado de la suite: **51 tests, 0 fallos** (`./gradlew :app:testDebugUnitTest`).
 

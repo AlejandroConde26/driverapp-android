@@ -1,12 +1,17 @@
 # S10 — Integración con Firebase: autenticación, Firestore y Storage
 
-**Estado: implementado, con una verificación pendiente de consola.**
+**Estado: Auth verificado en runtime · Firestore creado pendiente de reglas · Storage fuera de alcance por plan.**
 
-- **Auth, Firestore y Storage tienen código funcional y compilan.**
-- **La prueba en runtime no se pudo completar** por una condición del proyecto
-  Firebase facilitado (ver §5): el `appId` corresponde a otro `package_name`.
-- La app **no depende** de Firebase para funcionar: sin credenciales arranca en modo
-  dev y usa sólo el backend REST.
+- **Auth ✅ verificado**: `scripts/firebase_s10.sh verify` creó un usuario real en el proyecto
+  y recibió un **idToken de 974 caracteres**. La app `com.driverapp.repartidor` está registrada
+  (`appId 1:1009763251368:android:91893284a4d2a137453e9d`) y Email/Password está habilitado.
+- **Firestore 🟠**: la base de datos existe (una escritura sin reglas devuelve
+  `403 PERMISSION_DENIED`, no `404`). Falta publicar `firestore.rules`.
+- **Storage ⛔ fuera de alcance**: los proyectos Firebase nuevos exigen el **plan Blaze** para
+  crear un bucket (decisión del usuario: no activarlo). El código está implementado y el botón
+  del comprobante se oculta automáticamente cuando no hay bucket (`FirebaseConfig.isStorageEnabled()`).
+- La app **no depende** de Firebase para funcionar: sin credenciales arranca en modo dev y usa
+  sólo el backend REST.
 
 ---
 
@@ -81,12 +86,13 @@ Permisos: `<provider androidx.core.content.FileProvider>` con
 
 | Punto | Estado | Evidencia |
 |---|---|---|
-| Código compila y se empaqueta | ✅ | `./gradlew :app:assembleDebug` → APK 19,5 MB |
+| Código compila y se empaqueta | ✅ | `./gradlew :app:assembleDebug` → APK 18,6 MB |
+| App registrada para este package | ✅ | `google-services` con 2 clientes, uno `com.driverapp.repartidor` |
 | Degradación sin credenciales | ✅ | `FirebaseConfig.isConfigured()` = `false` → no-op; la app opera con REST |
-| Claves fuera del repo | ✅ | `local.properties` está en `.gitignore` (`git check-ignore -v local.properties`) |
-| Auth en runtime | ⚠️ **pendiente** | el `appId` del proyecto es de `tv.cdlatam.setimer`, no de `com.driverapp.repartidor` |
-| Firestore en runtime | ⚠️ **pendiente** | depende del punto anterior + que Firestore esté habilitado en el proyecto |
-| Storage en runtime | ⚠️ **pendiente** | idem + reglas de seguridad que permitan escritura al usuario autenticado |
+| Claves fuera del repo | ✅ | `local.properties` en `.gitignore` + `local.properties.example` versionado |
+| **Auth en runtime** | ✅ **verificado** | `verify` → usuario creado + idToken de 974 caracteres |
+| **Firestore en runtime** | 🟠 pendiente | base creada; escritura devuelve `403 PERMISSION_DENIED` hasta publicar `firestore.rules` |
+| **Storage en runtime** | ⛔ fuera de alcance | exige plan Blaze en proyectos nuevos; el usuario decidió no activarlo |
 
 ### Por qué no se pudo cerrar el runtime
 

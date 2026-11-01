@@ -1,0 +1,13 @@
+## Plantilla de configuración local. Copiar a `local.properties` (que NO se versiona)
+## y rellenar. En Android Studio el `sdk.dir` lo escribe el IDE solo.
+sdk.dir=/ruta/a/Android/Sdk
+
+## S10 · Firebase (opcional). Sin estas claves la app arranca en modo dev
+## contra el backend REST y las funciones de Firebase quedan apagadas.
+## Se obtienen de google-services.json → client[<package>].
+FIREBASE_API_KEY=
+FIREBASE_APP_ID=
+FIREBASE_PROJECT_ID=
+## Dejar vacío desactiva la subida del comprobante de entrega (Storage).
+## En proyectos Firebase nuevos Storage exige el plan Blaze.
+FIREBASE_STORAGE_BUCKET=
