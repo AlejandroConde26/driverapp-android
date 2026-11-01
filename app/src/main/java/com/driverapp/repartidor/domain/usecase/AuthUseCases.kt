@@ -8,13 +8,8 @@ class LoginUseCase(private val auth: AuthRepository) {
         if (email.isBlank() || password.isBlank()) {
             throw IllegalArgumentException("Ingresa correo y contraseña")
         }
-        val idToken = if (auth.isFirebaseConfigured()) {
-            auth.firebaseSignIn(email.trim(), password)
-        } else {
-            // DEV_MODE: el backend usa la parte local del correo como UID
-            email.trim().substringBefore("@")
-        }
-        return auth.login(idToken, fcmToken)
+        // La identidad la emite el backend: correo + contraseña, y devuelve su JWT.
+        return auth.login(email.trim(), password, fcmToken)
     }
 }
 

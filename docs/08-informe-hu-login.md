@@ -48,13 +48,14 @@ Tabla users (app/models/__init__.py)
 users 1─N orders · users 1─N earnings · users 1─N notifications   (ver docs/07)
 ```
 
-**Operación de persistencia del login (upsert por `firebase_uid`)** —
+**Operación de persistencia del login (correo + contraseña)** —
 `app/routers/auth.py`:
-1. `verify_id_token(id_token)` → extrae `sub` (UID) y `email`.
-2. `SELECT User WHERE firebase_uid = UID`.
-3. Si **no existe** → `INSERT` (uid, email, name derivado, `role=REPARTIDOR`).
-4. Si existe y viene `fcm_token` → `UPDATE users.fcm_token` + `commit`.
-5. Si `active == False` → `403`.
+1. `SELECT User WHERE email = lower(body.email)`.
+2. `verify_password(body.password, user.password_hash)` con bcrypt → si falla, `401`.
+3. Si `active == False` → `403`.
+4. Si viene `fcm_token` y cambió → `UPDATE users.fcm_token` + `commit`.
+5. Devuelve `LoginResponse` con el usuario y un **JWT HS256 propio**
+   (`create_access_token`, `sub` = `users.id`).
 
 El resto de la sesión vive **localmente** en el cliente (cifrada, ver §6).
 
@@ -99,11 +100,11 @@ El resto de la sesión vive **localmente** en el cliente (cifrada, ver §6).
     "online": false, "active": true, "latitude": null, "longitude": null,
     "created_at": "2026-09-27T03:02:14Z"
   },
-  "token": "<mismo id_token>"
+  "token": "<JWT HS256 firmado por el backend>"
 }
 ```
 
-Llamadas posteriores usan `Authorization: Bearer <token>` → `UserOut` en `GET /api/v1/users/me`.
+Llamadas posteriores usan `Authorization: Bearer <JWT>` → `UserOut` en `GET /api/v1/users/me`.
 
 ## 5. Servicio, base de datos y stack
 
@@ -117,16 +118,18 @@ Llamadas posteriores usan `Authorization: Bearer <token>` → `UserOut` en `GET 
 
 ## 6. Consideraciones de seguridad aplicadas al login
 
-- **Auth Bearer** en cada request; en modo real el token es un **JWT de Firebase**
-  (RS256) verificado con `firebase_admin.auth.verify_id_token`; en `DEV_MODE=1`
-  se acepta el UID como token (solo pruebas — para producción: `DEV_MODE=0` +
-  `FIREBASE_CREDENTIALS_PATH`).
+- **Auth Bearer** en cada request; el token es un **JWT HS256 firmado por este backend**
+  (`sub` = `users.id`, 7 días) verificado en `services/security.py`. El camino heredado
+  (ID token de Firebase / UID crudo con `DEV_MODE=1`) queda desactivado con
+  `LEGACY_AUTH_ENABLED=0`.
 - **Cifrado en cliente**: el token y el usuario se guardan en
   `EncryptedSharedPreferences` (`TokenDataStore`, AES256_SIV/GCM) — nunca en claro.
-- **Validación de entrada** con Pydantic (`id_token` no vacío, `fcm_token` opcional).
-- **Acceso denegado explícito**: `401` (token) y `403` (usuario `active=false`).
-- **No hay contraseñas en la BD de negocio**: `users` no almacena credenciales
-  (la autenticación la resuelve Firebase/cliente; el backend solo custodia el perfil).
+- **Validación de entrada** con Pydantic (`email: EmailStr`, `password` no vacía,
+  `fcm_token` opcional; `new_password` mínimo 6).
+- **Acceso denegado explícito**: `401` (credenciales o token) y `403` (usuario `active=false`).
+- **Contraseñas con hash**: `users.password_hash` guarda bcrypt (coste 12, sal por usuario);
+  el hash nunca sale en `UserOut` y el login no distingue correo inexistente de
+  contraseña incorrecta.
 
 ## 7. Criterios de aceptación — cumplidos
 

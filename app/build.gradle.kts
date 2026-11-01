@@ -38,7 +38,8 @@ android {
         buildConfigField("String", "FIREBASE_API_KEY", secret("FIREBASE_API_KEY"))
         buildConfigField("String", "FIREBASE_APP_ID", secret("FIREBASE_APP_ID"))
         buildConfigField("String", "FIREBASE_PROJECT_ID", secret("FIREBASE_PROJECT_ID"))
-        buildConfigField("String", "FIREBASE_STORAGE_BUCKET", secret("FIREBASE_STORAGE_BUCKET"))
+        // project_number: FCM no emite token sin él.
+        buildConfigField("String", "FIREBASE_SENDER_ID", secret("FIREBASE_SENDER_ID"))
     }
 
     buildTypes {
@@ -117,10 +118,8 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    implementation("com.google.firebase:firebase-auth")
+    // Sólo FCM: la autenticación la hace el backend, no Firebase.
     implementation("com.google.firebase:firebase-messaging")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
 
     implementation("org.osmdroid:osmdroid-android:6.1.20")
 

@@ -71,12 +71,12 @@ Decisiones de configuración:
 ### Login (request)
 
 ```json
-{ "id_token": "repartidor1", "fcm_token": "dQw4..." }
+{ "email": "repartidor1@driverapp.com", "password": "••••••", "fcm_token": "dQw4..." }
 ```
 
-`id_token` es el único campo obligatorio. En modo dev el backend interpreta la parte
-local del correo como UID; con Firebase configurado viaja el JWT de
-`signInWithEmailAndPassword`.
+`email` y `password` son obligatorios; `fcm_token` es opcional. El backend verifica la
+contraseña con bcrypt y devuelve su propio **JWT** (no un token de Firebase). Ver
+`docs/auth-backend.md`.
 
 ### Login (response)
 

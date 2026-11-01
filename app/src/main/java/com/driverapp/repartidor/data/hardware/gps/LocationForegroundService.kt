@@ -49,15 +49,28 @@ class LocationForegroundService : Service() {
     }
 
     private fun startTracking() {
-        val container = (application as App).container
-        val repo = container.locationRepository
-
-        if (!repo.hasPermission()) {
+        // CONTRATO IMPORTANTE: si alguien llamó a startForegroundService(), hay que
+        // llamar a startForeground() en menos de 5 s **aunque después vayamos a parar**.
+        // Antes se hacía stopSelf() sin haber llamado a startForeground() → el sistema
+        // mataba el proceso con "did not then call Service.startForeground()".
+        try {
+            startForeground(NOTIFICATION_ID, buildNotification())
+        } catch (e: Exception) {
+            // p. ej. SecurityException en Android 14 si falta el permiso de ubicación
+            android.util.Log.w("DriverApp", "No se pudo iniciar el servicio de ubicación: ${e.message}")
             stopSelf()
             return
         }
 
-        startForeground(NOTIFICATION_ID, buildNotification())
+        val container = (application as App).container
+        val repo = container.locationRepository
+
+        if (!repo.hasPermission()) {
+            stopTracking()
+            stopSelf()
+            return
+        }
+
         repo.start()
 
         if (loop != null) return
@@ -71,16 +84,6 @@ class LocationForegroundService : Service() {
                 // se reintenta en el siguiente tick (la cola offline es para
                 // transiciones de pedido, no para posiciones).
                 runCatching { repo.report(location) }
-
-                // S10: espejo de presencia en Firestore (no-op si no está configurado).
-                runCatching {
-                    container.firestore.syncPresence(
-                        driverKey = container.tokenStore.user()?.email.orEmpty(),
-                        online = true,
-                        lat = location.lat,
-                        lng = location.lng
-                    )
-                }
                 repo.markReported()
             }
         }

@@ -56,8 +56,8 @@ class LoginViewModel(
 
     fun validateEmail(value: String): Int? = when {
         value.isBlank() -> R.string.error_email_required
-        !value.contains("@") && value.length < 3 -> R.string.error_email_required
-        value.contains("@") && !EMAIL_REGEX.matches(value.trim()) -> R.string.error_email_invalid
+        // El backend valida el correo con EmailStr: sin dominio devuelve 422.
+        !EMAIL_REGEX.matches(value.trim()) -> R.string.error_email_invalid
         else -> null
     }
 

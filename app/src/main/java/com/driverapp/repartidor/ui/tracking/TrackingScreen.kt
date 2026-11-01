@@ -2,8 +2,7 @@ package com.driverapp.repartidor.ui.tracking
 
 import android.content.Intent
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -69,18 +68,6 @@ fun TrackingScreen(
 
     val context = LocalContext.current
     val mapState = remember { mutableStateOf<MapView?>(null) }
-
-    // S10 · comprobante de entrega: cámara -> Firebase Storage
-    val proofFile = remember { mutableStateOf<java.io.File?>(null) }
-    val takePicture = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success ->
-        val currentOrder = vm.activeOrder.value
-        val file = proofFile.value
-        if (success && currentOrder != null && file != null) {
-            vm.uploadProof(currentOrder, file)
-        }
-    }
 
     LaunchedEffect(Unit) { vm.refreshActive() }
 
@@ -166,30 +153,6 @@ fun TrackingScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(stringResource(R.string.map_start_delivery))
-                    }
-                    Spacer(Modifier.height(8.dp))
-                }
-                // S10 · Storage sólo si hay bucket habilitado (requiere plan Blaze en
-                // proyectos nuevos). Sin Storage el botón no se muestra: nada que falle.
-                if (com.driverapp.repartidor.data.firebase.FirebaseConfig.isStorageEnabled()) {
-                    OutlinedButton(
-                        onClick = {
-                            val dir = java.io.File(context.cacheDir, "proofs").apply { mkdirs() }
-                            val file = java.io.File(dir, "order_${current.id}.jpg")
-                            proofFile.value = file
-                            runCatching {
-                                val uri = androidx.core.content.FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    file
-                                )
-                                takePicture.launch(uri)
-                            }.onFailure { vm.showMessage(R.string.proof_failed) }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.proof_attach))
                     }
                     Spacer(Modifier.height(8.dp))
                 }

@@ -15,26 +15,31 @@ class LoginUseCaseTest {
     private val useCase = LoginUseCase(auth)
 
     @Test
-    fun `modo dev usa la parte local del correo como idToken`() = runTest {
-        coEvery { auth.isFirebaseConfigured() } returns false
-        coEvery { auth.login("repartidor1", null) } returns sampleUser()
+    fun `manda correo y contrasena al backend`() = runTest {
+        coEvery { auth.login("repartidor1@driverapp.com", "secreta", null) } returns sampleUser()
 
-        val user = useCase("repartidor1@driverapp.com", "cualquiera")
+        val user = useCase("repartidor1@driverapp.com", "secreta")
 
         assertEquals("Juan Delgado", user.name)
-        coVerify { auth.login("repartidor1", null) }
+        coVerify { auth.login("repartidor1@driverapp.com", "secreta", null) }
     }
 
     @Test
-    fun `con firebase usa el idToken de Firebase`() = runTest {
-        coEvery { auth.isFirebaseConfigured() } returns true
-        coEvery { auth.firebaseSignIn("a@b.com", "pw") } returns "FB_TOKEN"
-        coEvery { auth.login("FB_TOKEN", null) } returns sampleUser()
+    fun `recorta espacios del correo antes de enviarlo`() = runTest {
+        coEvery { auth.login("repartidor1@driverapp.com", "secreta", null) } returns sampleUser()
 
-        useCase("a@b.com", "pw")
+        useCase("  repartidor1@driverapp.com  ", "secreta")
 
-        coVerify { auth.firebaseSignIn("a@b.com", "pw") }
-        coVerify { auth.login("FB_TOKEN", null) }
+        coVerify { auth.login("repartidor1@driverapp.com", "secreta", null) }
+    }
+
+    @Test
+    fun `reenvia el token FCM cuando se conoce`() = runTest {
+        coEvery { auth.login("a@b.com", "pw", "FCM123") } returns sampleUser()
+
+        useCase("a@b.com", "pw", "FCM123")
+
+        coVerify { auth.login("a@b.com", "pw", "FCM123") }
     }
 
     @Test(expected = IllegalArgumentException::class)

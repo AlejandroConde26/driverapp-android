@@ -36,7 +36,6 @@ class LoginViewModelTest {
     fun setup() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         every { auth.currentToken() } returns null
-        every { auth.isFirebaseConfigured() } returns false
     }
 
     @After
@@ -46,7 +45,7 @@ class LoginViewModelTest {
 
     @Test
     fun `login exitoso emite Loading y Success`() = runTest {
-        coEvery { auth.login("repartidor1", null) } returns sampleUser()
+        coEvery { auth.login("repartidor1@driverapp.com", "secreta", null) } returns sampleUser()
         val vm = viewModel()
 
         vm.state.test {
@@ -80,9 +79,9 @@ class LoginViewModelTest {
 
         assertEquals(R.string.error_email_required, vm.validateEmail(""))
         assertEquals(R.string.error_email_invalid, vm.validateEmail("no-es-correo@"))
+        // Sin dominio ya no vale: el backend valida con EmailStr (422).
+        assertEquals(R.string.error_email_invalid, vm.validateEmail("repartidor1"))
         assertNull(vm.validateEmail("repartidor1@driverapp.com"))
-        // En modo dev se acepta usuario sin dominio
-        assertNull(vm.validateEmail("repartidor1"))
     }
 
     @Test

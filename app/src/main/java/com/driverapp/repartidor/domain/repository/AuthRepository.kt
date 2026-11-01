@@ -9,11 +9,8 @@ interface AuthRepository {
 
     fun currentToken(): String?
 
-    fun isFirebaseConfigured(): Boolean
-
-    suspend fun login(idToken: String, fcmToken: String?): User
-
-    suspend fun firebaseSignIn(email: String, password: String): String
+    /** Login contra el backend: devuelve el usuario y guarda el JWT de sesión. */
+    suspend fun login(email: String, password: String, fcmToken: String? = null): User
 
     suspend fun fetchMe(): User
 

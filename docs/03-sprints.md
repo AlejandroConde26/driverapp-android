@@ -21,17 +21,15 @@ Estado del pedido: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO` (o `RECH
 | 6 | Persistencia local: DataStore, Room, Repository | ✅ | `OrderDaoTest` (6), `app/schemas/…/1.json` |
 | 7 | **S08** Integración con API REST y Retrofit | ✅ | 20/20 endpoints del `openapi.json`, `ApiErrorMapperTest` |
 | 8 | **S09** CRUD, errores, estados y conectividad | ✅ | cola offline + `OrdersViewModelTest` (6) |
-| 9 | **S10** Firebase: Auth, Firestore, Storage | ✅ ² | Auth (idToken real 974 chars) + Firestore (escritura 200, lectura 200, sin token 403); Storage fuera de alcance (plan Blaze) |
+| 9 | **S10** Firebase: notificaciones push (FCM) | ✅ ² | Sólo FCM; auth, Firestore y Storage retirados del alcance |
 
-¹ El push FCM sólo funciona con un proyecto Firebase válido (ver sprint 9).
-² Auth y **Firestore verificados en runtime** contra el proyecto real: `verify` crea un usuario y
-obtiene un `idToken` (974 caracteres); la escritura de `drivers/{uid}` devuelve **200**, la lectura
-devuelve el documento completo y un request **sin token devuelve 403** (las reglas se aplican).
-Storage queda **fuera de alcance**: los proyectos Firebase nuevos exigen el plan Blaze para crear
-un bucket y se decidió no activarlo — el enunciado del sprint admite "Firestore **o** Storage".
-El código de Storage está listo y el botón del comprobante se oculta cuando no hay bucket.
+¹ El push FCM necesita proyecto Firebase válido **y** credenciales de servicio en el backend.
+² S10 quedó **acotado a notificaciones** por decisión del proyecto: la autenticación la emite el
+backend (correo + contraseña → JWT propio, ver `docs/auth-backend.md`), y Firestore/Storage se
+retiraron porque duplicaban la fuente de verdad y exigían el plan Blaze. Verificado contra el
+servidor real: login 200 / credencial incorrecta 401 / token viejo 401 / sesión 200.
 
-Resultado de la suite: **51 tests, 0 fallos** (`./gradlew :app:testDebugUnitTest`).
+Resultado de la suite: **52 tests, 0 fallos** (`./gradlew :app:testDebugUnitTest`).
 
 ---
 
@@ -178,16 +176,19 @@ Detalle en `docs/S09-crud-errores-estados-conectividad.md`.
 
 ---
 
-## Sprint 9 (S10) — Firebase: Auth, Firestore y Storage ⚠️
+## Sprint 9 (S10) — Firebase: notificaciones push (FCM) ✅
 
-Detalle en `docs/S10-integracion-firebase.md`.
+Detalle en `docs/S10-notificaciones-fcm.md`. Autenticación en `docs/auth-backend.md`.
 
-- [x] Credenciales leídas de `local.properties` (fuera del repo).
-- [x] Auth con `FirebaseOptions` (sin `google-services.json`) y degradación a modo dev.
-- [x] Firestore: documento `drivers/{email}` con presencia y última posición.
-- [x] Storage: comprobante de entrega (`deliveries/{orderId}.jpg`) con cámara + FileProvider.
-- [ ] **Prueba en runtime:** bloqueada porque el `appId` facilitado pertenece al package
-  `tv.cdlatam.setimer`. Pasos para cerrarlo al final del documento S10.
+- [x] Firebase reducido a **FCM**: `firebase-auth`, `firebase-firestore` y `firebase-storage`
+      eliminados del `build.gradle.kts`.
+- [x] `FirebaseOptions` manual con **`setGcmSenderId`** (sin el Sender ID FCM no emite token).
+- [x] Token FCM registrado en el backend con `PUT /users/me/fcm-token`.
+- [x] Notificación con canal propio, preferencias de sonido/avisos y permiso `POST_NOTIFICATIONS`.
+- [x] Retirados `FirebaseAuthDataSource`, `FirestoreDriverDataSource`, `StorageProofDataSource`,
+      `ProofRepository(Impl)` y el botón del comprobante.
+- [ ] **Push extremo a extremo:** el backend todavía no tiene credenciales de servicio,
+      así que hoy registra el mensaje y no lo envía (`services/fcm.py`).
 
 ---
 

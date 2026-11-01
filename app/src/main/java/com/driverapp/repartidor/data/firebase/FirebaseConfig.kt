@@ -12,15 +12,12 @@ import com.driverapp.repartidor.BuildConfig
 object FirebaseConfig {
 
     fun isConfigured(): Boolean =
-        BuildConfig.FIREBASE_API_KEY.isNotBlank() && BuildConfig.FIREBASE_APP_ID.isNotBlank()
+        BuildConfig.FIREBASE_API_KEY.isNotBlank() &&
+            BuildConfig.FIREBASE_APP_ID.isNotBlank() &&
+            BuildConfig.FIREBASE_SENDER_ID.isNotBlank()
 
-    /** Firestore sólo se usa si hay proyecto configurado. */
-    fun isFirestoreEnabled(): Boolean =
-        isConfigured() && BuildConfig.FIREBASE_PROJECT_ID.isNotBlank()
-
-    /** Storage necesita bucket además de proyecto. */
-    fun isStorageEnabled(): Boolean =
-        isConfigured() && BuildConfig.FIREBASE_STORAGE_BUCKET.isNotBlank()
+    /** Número de proyecto de Firebase: lo exige FCM para emitir el token. */
+    fun senderId(): String = BuildConfig.FIREBASE_SENDER_ID
 
     /**
      * El `mobilesdk_app_id` de Firebase está atado a un package_name concreto.

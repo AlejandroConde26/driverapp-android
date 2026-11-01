@@ -92,9 +92,10 @@ En `app/models/` (`User`, `Restaurant`, `MenuItem`, `Order`, `OrderItem`,
 ### 2.2 Schemas Pydantic — entrada / salida
 
 **`schemas/user.py`**
-- Entrada: `RegisterRequest` (firebase_uid, email, name, phone, role, vehicle),
+- Entrada: `RegisterRequest` (email, password, name, phone, role, vehicle),
   `UserUpdate` (name/phone/email), `VehicleUpdate`, `StatusUpdate`, `FcmTokenUpdate`,
-  `LocationUpdate`, `LoginIn` (id_token, fcm_token?).
+  `LocationUpdate`, `LoginRequest` (email, password, fcm_token?), `PasswordChange`
+  (current_password, new_password).
 - Salida: `UserOut` (id, email, name, phone, role, vehicle, online, active, lat/lng, created_at),
   `LoginResponse` (user + token).
 
@@ -119,9 +120,10 @@ En `app/models/` (`User`, `Restaurant`, `MenuItem`, `Order`, `OrderItem`,
 
 | Método | Ruta | Auth | Entrada | Salida |
 |---|---|---|---|---|
-| POST | `/api/v1/auth/login` | — | `id_token`, `fcm_token?` | `LoginResponse` |
-| POST | `/api/v1/auth/register` | — | `RegisterRequest` + id_token | `UserOut` |
+| POST | `/api/v1/auth/login` | — | `email`, `password`, `fcm_token?` | `LoginResponse` (user + JWT) |
+| POST | `/api/v1/auth/register` | — | `RegisterRequest` (con password) | `LoginResponse` (201) |
 | GET | `/api/v1/auth/session` | Bearer | — | `UserOut` |
+| PUT | `/api/v1/users/me/password` | Bearer | `PasswordChange` | `204` |
 | GET | `/api/v1/users/me` | Bearer | — | `UserOut` |
 | PUT | `/api/v1/users/me` | Bearer | `UserUpdate` | `UserOut` |
 | PUT | `/api/v1/users/me/vehicle` | Bearer | `VehicleUpdate` | `UserOut` |
@@ -201,10 +203,12 @@ usa **SQLite** (`aiosqlite`) de modo que no se requiere el contenedor en CI.
 
 ## 7. Consideraciones de seguridad
 
-- **Autenticación Bearer** en todas las rutas protegidas (`extract_token`). En modo
-  real, el token es un **JWT de Firebase** (firmado RS256) verificado con
-  `firebase_admin.auth.verify_id_token`. En `DEV_MODE` se acepta el UID como token
-  (solo entornos de pruebas).
+- **Autenticación Bearer** en todas las rutas protegidas (`extract_token`). El token es un
+  **JWT HS256 firmado por el propio backend** (`sub` = `users.id`, 7 días) y se verifica en
+  `services/security.py → decode_access_token`. El camino heredado (ID token de Firebase o
+  UID crudo en `DEV_MODE`) sólo se acepta con `LEGACY_AUTH_ENABLED=1`, hoy desactivado.
+- **Contraseñas** con bcrypt (coste 12) en `users.password_hash`; nunca se devuelve el hash
+  y el login responde el mismo `401` para correo inexistente y contraseña incorrecta.
 - **Control por roles** (`require_roles`): `get_driver` (repartidor), `get_admin`,
   `get_staff` (admin + restaurante). Respuestas `401` (token), `403` (permisos),
   `409` (estado inválido del pedido).

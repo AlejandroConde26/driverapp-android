@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.driverapp.repartidor.R
 import com.driverapp.repartidor.domain.model.Pedido
 import com.driverapp.repartidor.domain.repository.PedidoRepository
-import com.driverapp.repartidor.domain.repository.ProofRepository
 import com.driverapp.repartidor.domain.usecase.MarcarEnCaminoUseCase
 import com.driverapp.repartidor.domain.usecase.MarcarPedidoEntregadoUseCase
 import com.driverapp.repartidor.domain.usecase.ObtenerHistorialUseCase
@@ -25,8 +24,7 @@ class TrackingViewModel(
     private val historial: ObtenerHistorialUseCase,
     private val enCamino: MarcarEnCaminoUseCase,
     private val entregar: MarcarPedidoEntregadoUseCase,
-    private val messenger: UiMessenger,
-    private val proof: ProofRepository? = null
+    private val messenger: UiMessenger
 ) : ViewModel() {
 
     val activeOrder: StateFlow<Pedido?> =
@@ -37,13 +35,6 @@ class TrackingViewModel(
 
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy
-
-    /** S10 · URL del comprobante subido a Storage. */
-    private val _proofUrl = MutableStateFlow<String?>(null)
-    val proofUrl: StateFlow<String?> = _proofUrl
-
-    private val _uploadingProof = MutableStateFlow(false)
-    val uploadingProof: StateFlow<Boolean> = _uploadingProof
 
     fun refreshActive() {
         viewModelScope.launch {
@@ -89,29 +80,6 @@ class TrackingViewModel(
     }
 
     fun clearError() { _error.value = ErrorState.None }
-
-    /**
-     * S10 · sube la foto del comprobante a Firebase Storage y la registra en
-     * Firestore. Sin Firebase configurado avisa y no rompe el flujo de entrega.
-     */
-    fun uploadProof(order: Pedido, file: java.io.File, onDone: (String) -> Unit = {}) {
-        val repo = proof
-        if (repo == null) {
-            messenger.show(R.string.proof_failed)
-            return
-        }
-        viewModelScope.launch {
-            _uploadingProof.value = true
-            runCatching { repo.upload(order.id, file) }
-                .onSuccess {
-                    _proofUrl.value = it
-                    messenger.show(R.string.proof_uploaded)
-                    onDone(it)
-                }
-                .onFailure { messenger.show(R.string.proof_failed) }
-            _uploadingProof.value = false
-        }
-    }
 
     fun showMessage(resId: Int) = messenger.show(resId)
 }

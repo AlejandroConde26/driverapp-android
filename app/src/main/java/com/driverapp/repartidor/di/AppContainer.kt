@@ -2,10 +2,7 @@ package com.driverapp.repartidor.di
 
 import android.content.Context
 import com.driverapp.repartidor.BuildConfig
-import com.driverapp.repartidor.data.firebase.FirebaseAuthDataSource
 import com.driverapp.repartidor.data.firebase.FirebaseMessagingDataSource
-import com.driverapp.repartidor.data.firebase.FirestoreDriverDataSource
-import com.driverapp.repartidor.data.firebase.StorageProofDataSource
 import com.driverapp.repartidor.data.hardware.gps.LocationRepositoryImpl
 import com.driverapp.repartidor.data.local.TokenDataStore
 import com.driverapp.repartidor.data.local.UserPreferences
@@ -20,13 +17,11 @@ import com.driverapp.repartidor.data.repository.AuthRepositoryImpl
 import com.driverapp.repartidor.data.repository.EarningsRepositoryImpl
 import com.driverapp.repartidor.data.repository.NotificationRepositoryImpl
 import com.driverapp.repartidor.data.repository.PedidoRepositoryImpl
-import com.driverapp.repartidor.data.repository.ProofRepositoryImpl
 import com.driverapp.repartidor.domain.repository.AuthRepository
 import com.driverapp.repartidor.domain.repository.EarningsRepository
 import com.driverapp.repartidor.domain.repository.LocationRepository
 import com.driverapp.repartidor.domain.repository.NotificationRepository
 import com.driverapp.repartidor.domain.repository.PedidoRepository
-import com.driverapp.repartidor.domain.repository.ProofRepository
 import com.driverapp.repartidor.domain.usecase.AceptarPedidoUseCase
 import com.driverapp.repartidor.domain.usecase.ActualizarFcmTokenUseCase
 import com.driverapp.repartidor.domain.usecase.ActualizarPerfilUseCase
@@ -82,20 +77,15 @@ class AppContainer(context: Context) {
     val authApi: AuthApiService by lazy { retrofit.create(AuthApiService::class.java) }
     val pedidoApi: PedidoApiService by lazy { retrofit.create(PedidoApiService::class.java) }
 
-    val firebaseAuth: FirebaseAuthDataSource by lazy { FirebaseAuthDataSource() }
+    // Firebase sólo se usa para notificaciones push (FCM).
     val firebaseMessaging: FirebaseMessagingDataSource by lazy { FirebaseMessagingDataSource() }
-    val firestore: FirestoreDriverDataSource by lazy { FirestoreDriverDataSource() }
-    val storage: StorageProofDataSource by lazy { StorageProofDataSource() }
 
     // ---------- repositorios ----------
     val locationRepository: LocationRepository by lazy { LocationRepositoryImpl(appContext, authApi) }
-    val authRepository: AuthRepository by lazy { AuthRepositoryImpl(authApi, firebaseAuth, tokenStore) }
+    val authRepository: AuthRepository by lazy { AuthRepositoryImpl(authApi, tokenStore) }
     val pedidoRepository: PedidoRepository by lazy { PedidoRepositoryImpl(pedidoApi, local, syncQueue) }
     val earningsRepository: EarningsRepository by lazy { EarningsRepositoryImpl(pedidoApi, local) }
     val notificationRepository: NotificationRepository by lazy { NotificationRepositoryImpl(pedidoApi) }
-    val proofRepository: ProofRepository by lazy {
-        ProofRepositoryImpl(storage, firestore) { tokenStore.user()?.email }
-    }
 
     // ---------- casos de uso: sesión y perfil ----------
     val loginUseCase by lazy { LoginUseCase(authRepository) }
@@ -139,7 +129,7 @@ class AppContainer(context: Context) {
     fun trackingViewModelFactory() = ViewModelFactory {
         TrackingViewModel(
             pedidoRepository, misPedidos, historialPedidos,
-            marcarEnCamino, marcarEntregado, messenger, proofRepository
+            marcarEnCamino, marcarEntregado, messenger
         )
     }
 

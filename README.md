@@ -5,7 +5,7 @@ backend FastAPI (`:8084`), dashboard web-admin (`:3000`) y esta app.
 
 ## Resumen
 
-- **Iniciar sesión** con correo y contraseña (Firebase Auth, o modo dev sin Firebase).
+- **Iniciar sesión** con correo y contraseña contra el backend (JWT propio del servidor; Firebase no interviene en el login).
 - **Ver pedidos disponibles**, aceptarlos o rechazarlos (pestaña *Órdenes*).
 - **Seguir la entrega en el mapa** (osmdroid) con ETA y distancia en vivo, y marcar
   *EN_CAMINO* al salir del restaurante.
@@ -84,9 +84,10 @@ git clone <repo> && cd driverapp-android-main
 
 ## Estado
 
-- Suite: **51 tests, 0 fallos** · `lintDebug`: **0 errores**.
+- Suite: **52 tests, 0 fallos** · `lintDebug`: **0 errores**.
 - Sprints 1–6 y S08–S10 **cumplidos y verificados**; detalle con evidencia en
   `docs/03-sprints.md`.
-- S10: **Auth y Firestore verificados en runtime** (idToken real, escritura 200, lectura 200,
-  sin token 403). **Storage fuera de alcance**: los proyectos Firebase nuevos exigen plan Blaze;
-  el código queda listo y desactivado por configuración.
+- **Autenticación:** la emite el backend (correo + contraseña → JWT propio). Contrato y
+  verificación en `docs/auth-backend.md`.
+- **Firebase:** sólo notificaciones push (FCM). Sin Auth, sin Firestore, sin Storage;
+  detalle en `docs/S10-notificaciones-fcm.md`.

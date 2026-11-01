@@ -2,12 +2,12 @@
 ## y rellenar. En Android Studio el `sdk.dir` lo escribe el IDE solo.
 sdk.dir=/ruta/a/Android/Sdk
 
-## S10 · Firebase (opcional). Sin estas claves la app arranca en modo dev
-## contra el backend REST y las funciones de Firebase quedan apagadas.
-## Se obtienen de google-services.json → client[<package>].
+## S10 · Firebase para NOTIFICACIONES PUSH (FCM) únicamente.
+## La autenticación la hace el backend: correo + contraseña -> JWT propio.
+## Sin estas claves la app funciona igual, sólo que sin push.
+## Se obtienen de google-services.json → project_info / client[<package>].
 FIREBASE_API_KEY=
 FIREBASE_APP_ID=
 FIREBASE_PROJECT_ID=
-## Dejar vacío desactiva la subida del comprobante de entrega (Storage).
-## En proyectos Firebase nuevos Storage exige el plan Blaze.
-FIREBASE_STORAGE_BUCKET=
+## project_info.project_number. FCM no emite token sin el Sender ID.
+FIREBASE_SENDER_ID=

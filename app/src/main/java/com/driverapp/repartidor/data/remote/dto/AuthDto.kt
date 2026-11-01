@@ -4,7 +4,8 @@ import com.driverapp.repartidor.domain.model.User
 import com.google.gson.annotations.SerializedName
 
 data class LoginRequestDto(
-    @SerializedName("id_token") val idToken: String,
+    val email: String,
+    val password: String,
     @SerializedName("fcm_token") val fcmToken: String? = null
 )
 

@@ -1,6 +1,5 @@
 package com.driverapp.repartidor.data.repository
 
-import com.driverapp.repartidor.data.firebase.FirebaseAuthDataSource
 import com.driverapp.repartidor.data.local.TokenDataStore
 import com.driverapp.repartidor.data.remote.AuthApiService
 import com.driverapp.repartidor.data.remote.dto.FcmTokenUpdateDto
@@ -14,9 +13,13 @@ import com.driverapp.repartidor.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Autenticación contra el backend propio: la app manda correo + contraseña,
+ * el backend verifica el hash y devuelve su JWT. Firebase ya no participa en
+ * el login (sólo en las notificaciones push).
+ */
 class AuthRepositoryImpl(
     private val api: AuthApiService,
-    private val firebaseAuth: FirebaseAuthDataSource,
     private val tokenStore: TokenDataStore
 ) : AuthRepository {
 
@@ -25,19 +28,14 @@ class AuthRepositoryImpl(
 
     override fun currentToken(): String? = tokenStore.token()
 
-    override fun isFirebaseConfigured(): Boolean = firebaseAuth.isConfigured()
-
-    override suspend fun login(idToken: String, fcmToken: String?): User {
-        val resp = api.login(LoginRequestDto(idToken, fcmToken))
+    override suspend fun login(email: String, password: String, fcmToken: String?): User {
+        val resp = api.login(LoginRequestDto(email, password, fcmToken))
         tokenStore.saveToken(resp.token)
         val user = resp.user.toDomain()
         tokenStore.saveUser(user)
         _user.value = user
         return user
     }
-
-    override suspend fun firebaseSignIn(email: String, password: String): String =
-        firebaseAuth.signIn(email, password)
 
     override suspend fun fetchMe(): User = api.me().toDomain().also {
         tokenStore.saveUser(it)
