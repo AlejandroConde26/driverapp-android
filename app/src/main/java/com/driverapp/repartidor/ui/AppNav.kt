@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -70,7 +71,14 @@ fun AppNav(container: AppContainer) {
 
     val start = remember { if (loginVm.isLoggedIn()) Routes.ORDERS else Routes.LOGIN }
 
-    DriverAppTheme {
+    // El tema sigue la PREFERENCIA del usuario, no el modo del sistema. Con
+    // ComponentActivity, `AppCompatDelegate.setDefaultNightMode` no se aplica, así
+    // que desactivar el modo oscuro no cambiaba nada: la UI seguía en oscuro porque
+    // leía `isSystemInDarkTheme()`. Hasta la primera emisión se usa el sistema.
+    val darkPref by container.userPreferences.darkMode
+        .collectAsStateWithLifecycle(initialValue = isSystemInDarkTheme())
+
+    DriverAppTheme(darkTheme = darkPref) {
         NavHost(navController = nav, startDestination = start) {
 
             composable(Routes.LOGIN) {
@@ -163,7 +171,12 @@ fun AppNav(container: AppContainer) {
                         onLogout = {
                             LocationForegroundService.stop(context)
                             mainVm.logout()
-                            nav.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+                            // `popUpTo(0)` desmontaba el grafo entero mientras el
+                            // NavHost seguía componiendo (crash al cerrar sesión).
+                            nav.navigate(Routes.LOGIN) {
+                                popUpTo(nav.graph.id) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         },
                         onLanguageChanged = {
                             (context as? android.app.Activity)?.recreate()

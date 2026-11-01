@@ -76,8 +76,8 @@
     <string name="map_on_delivery">Delivering</string>
     <string name="map_start_delivery">Left the restaurant</string>
     <string name="map_complete_delivery">Complete delivery</string>
-    <string name="map_call_restaurant">Call restaurant</string>
-    <string name="map_no_phone">The restaurant has no phone number</string>
+    <string name="map_call_client">Call customer</string>
+    <string name="map_no_client_phone">The order has no customer phone</string>
     <string name="map_dial_error">Could not open the dialer</string>
     <string name="map_localizing">Locating…</string>
     <string name="map_activate_location">Enable real-time location in Profile</string>

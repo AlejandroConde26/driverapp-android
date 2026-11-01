@@ -6,6 +6,7 @@ data class Pedido(
     val driverId: Int? = null,
     val clientName: String,
     val clientAddress: String,
+    val clientPhone: String? = null,
     val destLat: Double,
     val destLng: Double,
     val estado: EstadoPedido,

@@ -1,5 +1,7 @@
 package com.driverapp.repartidor.ui.login
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -72,11 +76,22 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
+        // El logo es un PNG con fondo negro y pin blanco: con `Icon(...tint=...)` se
+        // pintaba de un solo color y se veía como un bloque liso. `Image` lo muestra
+        // tal cual; se recorta en cuadrado redondeado para que el borde negro no
+        // desaparezca sobre el fondo oscuro.
+        Image(
             painter = painterResource(R.drawable.app_logo),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.size(72.dp)
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(96.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant,
+                    RoundedCornerShape(22.dp)
+                )
         )
         Spacer(Modifier.height(16.dp))
         Text(

@@ -76,8 +76,8 @@
     <string name="map_on_delivery">En Entrega</string>
     <string name="map_start_delivery">Salí del restaurante</string>
     <string name="map_complete_delivery">Completar entrega</string>
-    <string name="map_call_restaurant">Llamar al restaurante</string>
-    <string name="map_no_phone">El restaurante no tiene teléfono registrado</string>
+    <string name="map_call_client">Llamar al cliente</string>
+    <string name="map_no_client_phone">El pedido no tiene teléfono del cliente</string>
     <string name="map_dial_error">No se pudo abrir el marcador</string>
     <string name="map_localizing">Localizando…</string>
     <string name="map_activate_location">Activa la ubicación en tiempo real desde Perfil</string>

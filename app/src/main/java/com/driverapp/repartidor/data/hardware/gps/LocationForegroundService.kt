@@ -93,6 +93,8 @@ class LocationForegroundService : Service() {
         loop?.cancel()
         loop = null
         runCatching { (application as App).container.locationRepository.stop() }
+        // Quita la notificación persistente; sin esto puede quedar colgada tras parar.
+        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
     }
 
     private fun buildNotification(): Notification {
@@ -134,10 +136,10 @@ class LocationForegroundService : Service() {
         }
 
         fun stop(context: Context) {
-            val intent = Intent(context, LocationForegroundService::class.java)
-                .setAction(ACTION_STOP)
-            runCatching { context.startService(intent) }
-                .onFailure { context.stopService(Intent(context, LocationForegroundService::class.java)) }
+            // `stopService()` en vez de un intent ACTION_STOP: no pasa por
+            // `onStartCommand`, así que no puede arrancar el servicio en frío ni
+            // saltar el contrato de `startForegroundService` si algo va mal.
+            runCatching { context.stopService(Intent(context, LocationForegroundService::class.java)) }
         }
     }
 }

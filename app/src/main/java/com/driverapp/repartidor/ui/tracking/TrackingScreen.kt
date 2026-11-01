@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,10 +27,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.driverapp.repartidor.R
 import com.driverapp.repartidor.domain.model.EstadoPedido
@@ -39,7 +43,6 @@ import com.driverapp.repartidor.domain.repository.LocationRepository
 import com.driverapp.repartidor.ui.components.BusyOverlay
 import com.driverapp.repartidor.ui.components.ConfirmDialog
 import com.driverapp.repartidor.ui.components.etaLabel
-import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -68,6 +71,26 @@ fun TrackingScreen(
 
     val context = LocalContext.current
     val mapState = remember { mutableStateOf<MapView?>(null) }
+    var centeredOnce by remember { mutableStateOf(false) }
+
+    // Ciclo de vida del MapView: sin onPause/onDetach el proveedor de teselas sigue
+    // vivo y la vista se queda colgada al cambiar de pestaña.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> mapState.value?.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapState.value?.onPause()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            mapState.value?.onDetach()
+            mapState.value = null
+        }
+    }
 
     LaunchedEffect(Unit) { vm.refreshActive() }
 
@@ -77,11 +100,12 @@ fun TrackingScreen(
                 .fillMaxWidth()
                 .height(300.dp),
             factory = { ctx ->
-                Configuration.getInstance().userAgentValue = ctx.packageName
                 MapView(ctx).apply {
                     setTileSource(TileSourceFactory.MAPNIK)
                     setMultiTouchControls(true)
-                    controller.setZoom(15.0)
+                    setBuiltInZoomControls(false)
+                    controller.setZoom(16.0)
+                    // osmdroid arranca el proveedor de teselas en onResume.
                     onResume()
                     mapState.value = this
                 }
@@ -90,6 +114,18 @@ fun TrackingScreen(
                 map.overlays.removeAll { it is Marker }
                 val currentLocation = location
                 val currentOrder = order
+                // Si no hay pedido ni posición, se centra en la posición por defecto
+                // del repartidor para que el mapa no se quede en (0,0) — océano.
+                if (!centeredOnce) {
+                    val target = currentOrder?.restaurant?.let { GeoPoint(it.lat, it.lng) }
+                        ?: currentLocation?.let { GeoPoint(it.lat, it.lng) }
+                        ?: currentOrder?.let { GeoPoint(it.destLat, it.destLng) }
+                    if (target != null) {
+                        map.controller.setCenter(target)
+                        map.controller.setZoom(16.0)
+                        centeredOnce = true
+                    }
+                }
 
                 if (currentOrder != null) {
                     currentOrder.restaurant?.let { restaurant ->
@@ -166,9 +202,9 @@ fun TrackingScreen(
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(
                     onClick = {
-                        val phone = current.restaurant?.phone
+                        val phone = current.clientPhone
                         if (phone.isNullOrBlank()) {
-                            vm.showMessage(R.string.map_no_phone)
+                            vm.showMessage(R.string.map_no_client_phone)
                         } else {
                             runCatching {
                                 context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
@@ -178,7 +214,7 @@ fun TrackingScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.map_call_restaurant))
+                    Text(stringResource(R.string.map_call_client))
                 }
             }
         }
