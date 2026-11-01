@@ -1,13 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DriverApp</string>
+
+    <!-- Login -->
     <string name="login_subtitle">Plataforma de Repartidores</string>
     <string name="email_label">Correo o Usuario</string>
     <string name="password_label">Contraseña</string>
     <string name="login">Iniciar Sesión</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña? Contacta al administrador</string>
+
+    <!-- Navegación -->
     <string name="tab_orders">Órdenes</string>
     <string name="tab_map">Mapa</string>
     <string name="tab_earnings">Ganancias</string>
     <string name="tab_profile">Perfil</string>
+    <string name="tab_notifications">Novedades</string>
 
     <string name="status_online">Conectado</string>
     <string name="status_offline">Desconectado</string>
@@ -15,7 +22,9 @@
     <string name="subtitle_map">Estado de tu entrega en tiempo real</string>
     <string name="subtitle_earnings">Resumen de tus ingresos</string>
     <string name="subtitle_profile">Gestiona tu cuenta y preferencias</string>
+    <string name="subtitle_notifications">Avisos de tus pedidos</string>
 
+    <!-- Órdenes -->
     <string name="tab_assigned">Asignados</string>
     <string name="tab_history">Historial</string>
     <string name="show_detail">Ver Detalle</string>
@@ -23,10 +32,79 @@
     <string name="reject">Rechazar</string>
     <string name="view_tracking">Ver Seguimiento</string>
     <string name="btn_accept">Aceptar</string>
-
     <string name="empty_orders">Sin pedidos por ahora</string>
     <string name="empty_history">Sin historial todavía</string>
+    <string name="order_label">Orden #%1$s</string>
+    <string name="order_items_title">Items de la orden #%1$s</string>
+    <string name="order_items_empty">La orden no tiene items (pedido directo)</string>
+    <string name="order_items_count">%1$d items</string>
+    <string name="order_status">Estado</string>
+    <string name="order_payment">Pago</string>
+    <string name="order_fee">Comisión</string>
+    <string name="order_distance">Distancia</string>
+    <string name="order_eta">Tiempo estimado</string>
+    <string name="detail_close">Cerrar</string>
+    <string name="label_note">Nota: %1$s</string>
+    <string name="status_accepted">Aceptado</string>
+    <string name="status_on_the_way">En camino</string>
+    <string name="status_delivered">Entregado</string>
+    <string name="status_rejected">Rechazado</string>
+    <string name="status_pending">Pendiente</string>
 
+    <!-- Confirmaciones -->
+    <string name="confirm_accept_title">Aceptar Pedido</string>
+    <string name="confirm_accept_body">¿Quieres aceptar la orden #%1$s y dirigirte al restaurante?</string>
+    <string name="confirm_reject_title">Rechazar Pedido</string>
+    <string name="confirm_reject_body">¿Seguro que quieres rechazar la orden #%1$s?</string>
+    <string name="confirm_complete_title">Completar Entrega</string>
+    <string name="confirm_complete_body">¿Confirmas que entregaste la orden #%1$s correctamente?</string>
+    <string name="confirm_start_title">Salir del restaurante</string>
+    <string name="confirm_start_body">¿Ya tienes la orden #%1$s? Se marcará EN_CAMINO y el ETA apuntará al cliente.</string>
+    <string name="confirm_logout_title">Cerrar Sesión</string>
+    <string name="confirm_logout_body">¿Seguro que quieres cerrar tu sesión?</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_accept_short">Aceptar</string>
+    <string name="action_reject">Rechazar</string>
+    <string name="action_delivered">Sí, entregado</string>
+    <string name="action_start">Sí, voy en camino</string>
+    <string name="action_logout">Cerrar sesión</string>
+
+    <!-- Mapa -->
+    <string name="map_no_active_order">No tienes un pedido activo</string>
+    <string name="map_available">Disponible</string>
+    <string name="map_on_delivery">En Entrega</string>
+    <string name="map_start_delivery">Salí del restaurante</string>
+    <string name="map_complete_delivery">Completar entrega</string>
+    <string name="map_call_restaurant">Llamar al restaurante</string>
+    <string name="map_no_phone">El restaurante no tiene teléfono registrado</string>
+    <string name="map_dial_error">No se pudo abrir el marcador</string>
+    <string name="map_localizing">Localizando…</string>
+    <string name="map_activate_location">Activa la ubicación en tiempo real desde Perfil</string>
+    <string name="map_activating_gps">Activando GPS…</string>
+    <string name="map_no_coordinates">Destino sin coordenadas</string>
+    <string name="map_live_speed">Velocidad actual %1$s km/h · en tiempo real</string>
+    <string name="map_eta_avg">ETA estimado a velocidad promedio</string>
+    <string name="map_my_location">Mi ubicación</string>
+    <string name="eta_hours_short">0:%1$02d hrs</string>
+    <string name="eta_hours">%1$d:%2$02d hrs</string>
+
+    <!-- Ganancias -->
+    <string name="period_day">Hoy</string>
+    <string name="period_week">Semana</string>
+    <string name="period_month">Mes</string>
+    <string name="period_year">Año</string>
+    <string name="earnings_deliveries">Entregas</string>
+    <string name="earnings_tips">Propinas</string>
+    <string name="earnings_bonuses">Bonos</string>
+    <string name="earnings_other">Otros</string>
+    <string name="earnings_orders_count">Pedidos</string>
+    <string name="earnings_total">Ganancia total</string>
+    <string name="earnings_masked">$••••••</string>
+    <string name="earnings_toggle">Mostrar u ocultar saldo</string>
+    <string name="earnings_connected_time">-- hrs</string>
+
+    <!-- Perfil y preferencias -->
     <string name="prefs_title">Preferencias</string>
     <string name="pref_dark_mode">Modo Oscuro</string>
     <string name="pref_notifications">Notificaciones</string>
@@ -37,4 +115,82 @@
     <string name="hello_user">¡Hola, %1$s!</string>
     <string name="my_earnings">Mis Ganancias</string>
     <string name="my_profile">Mi Perfil</string>
+    <string name="profile_edit">Editar Perfil</string>
+    <string name="profile_vehicle">Modo Vehículo</string>
+    <string name="profile_payments">Métodos de Pago</string>
+    <string name="profile_help">Centro de Ayuda</string>
+    <string name="profile_contact">Contactar Soporte</string>
+    <string name="profile_terms">Términos y Condiciones</string>
+    <string name="profile_payments_body">Efectivo y tarjeta al repartidor. Las liquidaciones se muestran en Ganancias.</string>
+    <string name="profile_help_body">Revisa la documentación o contacta a soporte para resolver dudas.</string>
+    <string name="profile_contact_body">soporte@driverapp.com</string>
+    <string name="profile_terms_body">Al usar DriverApp aceptas los términos del servicio. Versión 1.0.</string>
+    <string name="logout">Cerrar Sesión</string>
+    <string name="stats_orders">Entregas</string>
+    <string name="stats_tips">Propinas</string>
+    <string name="stats_total">Ganancia</string>
+    <string name="stats_empty">—</string>
+    <string name="field_name">Nombre</string>
+    <string name="field_phone">Teléfono</string>
+    <string name="action_save">Guardar</string>
+    <string name="vehicle_bicycle">Bicicleta</string>
+    <string name="vehicle_moto">Moto</string>
+    <string name="vehicle_car">Auto</string>
+    <string name="language_es">Español</string>
+    <string name="language_en">English</string>
+
+    <!-- Validaciones -->
+    <string name="error_email_required">Ingresa tu correo o usuario</string>
+    <string name="error_email_invalid">El correo no tiene un formato válido</string>
+    <string name="error_password_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="error_name_short">El nombre debe tener al menos 2 caracteres</string>
+    <string name="error_phone_invalid">El teléfono debe tener entre 7 y 15 dígitos</string>
+    <string name="error_required">Campo obligatorio</string>
+
+    <!-- Estados y conectividad -->
+    <string name="action_retry">Reintentar</string>
+    <string name="state_loading">Cargando…</string>
+    <string name="offline_banner">Sin conexión · mostrando datos guardados</string>
+    <string name="pending_sync">%1$d cambios por enviar</string>
+    <string name="session_expired">Tu sesión expiró. Vuelve a iniciar sesión.</string>
+    <string name="error_generic">Error inesperado</string>
+
+    <!-- Notificaciones (S09) -->
+    <string name="notifications_title">Novedades</string>
+    <string name="notifications_mark_read">Marcar todas como leídas</string>
+    <string name="notifications_empty">No tienes novedades</string>
+    <string name="notifications_dismiss">Descartar</string>
+    <string name="notifications_read_badge">Leída</string>
+    <string name="notifications_unread_badge">Nueva</string>
+    <string name="notifications_all_read">Todas marcadas como leídas</string>
+
+    <!-- Mensajes -->
+    <string name="msg_order_accepted">¡Pedido aceptado!</string>
+    <string name="msg_order_completed">¡Pedido completado! 🎉</string>
+    <string name="msg_order_rejected">Pedido rechazado</string>
+    <string name="msg_order_on_the_way">En camino al cliente</string>
+    <string name="msg_profile_updated">Perfil actualizado</string>
+    <string name="msg_vehicle_updated">Vehículo actualizado: %1$s</string>
+    <string name="msg_notifications_on">Notificaciones activadas</string>
+    <string name="msg_notifications_off">Notificaciones desactivadas</string>
+    <string name="msg_sound_on">Sonido activado</string>
+    <string name="msg_sound_off">Sonido desactivado</string>
+    <string name="msg_location_on">Ubicación en tiempo real activada</string>
+    <string name="msg_location_off">Ubicación en tiempo real desactivada</string>
+    <string name="msg_location_denied">Permiso de ubicación denegado</string>
+    <string name="msg_connected">Conectado</string>
+    <string name="msg_disconnected">Desconectado</string>
+    <string name="msg_queued">Sin red: el cambio se enviará al reconectar</string>
+
+    <!-- Servicio en primer plano -->
+    <string name="location_service_title">Ubicación activa</string>
+    <string name="location_service_text">Tu posición se envía mientras estás en línea</string>
+    <string name="location_channel_name">Ubicación en tiempo real</string>
+
+    <!-- S10 Firebase -->
+    <string name="firebase_disabled">Firebase no configurado (modo dev)</string>
+    <string name="proof_uploading">Subiendo comprobante…</string>
+    <string name="proof_uploaded">Comprobante subido</string>
+    <string name="proof_failed">No se pudo subir el comprobante</string>
+    <string name="proof_attach">Adjuntar comprobante de entrega</string>
 </resources>

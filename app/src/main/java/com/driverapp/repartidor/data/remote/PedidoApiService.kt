@@ -7,6 +7,7 @@ import com.driverapp.repartidor.data.remote.dto.RestauranteDto
 import com.driverapp.repartidor.data.remote.dto.ResumenGananciasDto
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -47,4 +48,8 @@ interface PedidoApiService {
 
     @GET("api/v1/notifications/my")
     suspend fun myNotifications(): List<NotificacionDto>
+
+    /** S09 · actualización masiva: marca como leídas todas las notificaciones. */
+    @PUT("api/v1/notifications/my/read")
+    suspend fun markNotificationsRead()
 }

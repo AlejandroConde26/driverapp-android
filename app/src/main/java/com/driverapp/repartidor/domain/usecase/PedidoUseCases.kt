@@ -1,8 +1,6 @@
 package com.driverapp.repartidor.domain.usecase
 
-import com.driverapp.repartidor.domain.model.Ganancia
 import com.driverapp.repartidor.domain.model.Pedido
-import com.driverapp.repartidor.domain.model.ResumenGanancias
 import com.driverapp.repartidor.domain.repository.PedidoRepository
 
 class ObtenerPedidosDisponiblesUseCase(private val repo: PedidoRepository) {
@@ -33,10 +31,6 @@ class MarcarPedidoEntregadoUseCase(private val repo: PedidoRepository) {
     suspend operator fun invoke(id: Long): Pedido = repo.complete(id)
 }
 
-class ObtenerGananciasUseCase(private val repo: PedidoRepository) {
-    suspend operator fun invoke(period: String): ResumenGanancias = repo.earningsSummary(period)
-}
-
-class ObtenerHistorialGananciasUseCase(private val repo: PedidoRepository) {
-    suspend operator fun invoke(): List<Ganancia> = repo.earningsHistory()
+class ObtenerDetallePedidoUseCase(private val repo: PedidoRepository) {
+    suspend operator fun invoke(id: Long): Pedido = repo.detail(id)
 }

@@ -1,107 +1,115 @@
-# DriverApp / SUMAQ — Sprint 05: Interfaz y navegación en Jetpack Compose (ejecutado)
+# Sprint 05 — Interfaz y navegación en Jetpack Compose (ejecutado)
 
-**Encargo de práctica de campo:**
-
-> *Ejecutar sprint de interfaz y navegación en Kotlin/Jetpack Compose.
-> Implementar validaciones y componentes principales.*
-
-Se ejecutó sobre la app Android del repartidor (paquete `com.driverapp.repartidor`).
-La capa de negocio (`domain`) y de datos (`data`) se mantuvo intacta; el alcance
-del sprint fue la capa de presentación.
+**Estado: cumplido.** La capa de presentación completa está en Compose. No queda
+ningún layout XML ni Fragment: `res/layout/` está vacío y `viewBinding` se eliminó
+del build.
 
 ---
 
-## 1. Objetivo cumplido
+## 1. Qué se migró
 
-Se llevó la interfaz de la app a **Jetpack Compose** con navegación declarativa,
-se desarrollaron los **componentes principales** reutilizables y se **implementaron
-las validaciones** de formularios (login y perfil).
-
-## 2. Estado inicial del sprint
-
-La app partía de **XML + Fragments con ViewBinding** y navegación manual. Sin Compose.
-
-| Aspecto | Estado inicial |
+| Antes (XML + Fragments) | Ahora (Compose) |
 |---|---|
-| UI | XML (`res/layout/`): `activity_login`, `activity_main`, `fragment_orders`, `fragment_tracking`, `fragment_earnings`, `fragment_profile` + vistas reutilizables |
-| Navegación | Manual: `MainActivity.kt` `supportFragmentManager.beginTransaction().replace()` + `bottomNav.setOnItemSelectedListener` (4 tabs). Sin Navigation Component |
-| ViewModels | Uno por pantalla (`login`, `main`, `orders`, `tracking`, `earnings`, `profile`) — **reutilizados en Compose** |
-| Componentes | `ConfirmDialog`, `PieView` (Canvas), status pill online/offline, custom toast (`view_toast`), `LoadingState`/`ErrorState`, `UiMessenger` |
-| Validaciones | Inexistentes en UI: el login enviaba el formulario directo al backend (`LoginActivity.kt`) y mostraba el error por toast/`errorText`; el perfil no validaba campos |
-| Infraestructura | DI manual (`AppContainer` + `ViewModelFactory`) — **reutilizado** |
+| 10 layouts: **2.922 líneas** de XML | **0 layouts**, UI declarativa en Kotlin |
+| `LoginActivity` + `MainActivity` con 2 Activities | **1 Activity** (`MainActivity`) + `NavHost` |
+| `supportFragmentManager.replace()` manual | `NavHost` declarativo (`ui/AppNav.kt`) |
+| Bottom nav vía `BottomNavigationView` + `menu/bottom_nav.xml` | `NavigationBar` de Material 3 |
+| `OrdersAdapter` + `RecyclerView` + `DiffUtil` | `LazyColumn` + `OrderCard` composable |
+| `PieView` (Canvas en una View custom) | `EarningsChart` composable con `Canvas` |
+| Toast custom inflado (`view_toast.xml`) | `ToastHost` con `AnimatedVisibility` |
 
-## 3. Dependencias incorporadas
+## 2. Dependencias (Compose 1.5, compatible con Kotlin 1.9.0)
 
-```
-implementation(platform("androidx.compose:compose-bom:<versión estable>"))
+```kotlin
+implementation(platform("androidx.compose:compose-bom:2023.08.00"))
 implementation("androidx.compose.ui:ui")
 implementation("androidx.compose.material3:material3")
-implementation("androidx.compose.ui:ui-tooling-preview")
-implementation("androidx.activity:activity-compose")
-implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
-implementation("androidx.navigation:navigation-compose:2.7.x")
+implementation("androidx.activity:activity-compose:1.8.2")
+implementation("androidx.navigation:navigation-compose:2.7.7")
+implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 ```
 
-- El mapa **osmdroid es ajeno a Compose** → se embebió con `AndroidView`.
-- La sesión cifrada (`TokenDataStore`) se consumió igual desde los ViewModels.
+```kotlin
+buildFeatures { compose = true; viewBinding = false }
+composeOptions { kotlinCompilerExtensionVersion = "1.5.0" }
+```
 
-## 4. Navegación Compose (implementada)
+El compilador de Compose va emparejado **exactamente** con la versión de Kotlin
+(1.9.0 → 1.5.0). Subir Kotlin sin subir el compilador rompe el build, así que se dejó
+la pareja fija y documentada.
 
-- **`NavHost`** con grafo: `login` → `main` (destino inicial según sesión).
-- **`main`** es un `Scaffold` con **`NavigationBar`** de 4 destinos:
-  `orders` (Órdenes), `map` (Mapa), `earnings` (Ganancias), `profile` (Perfil).
-- Detalle de pedido como **destino anidado** `orders/{orderId}`.
-- **Back**: `PopBackStack` al destino raíz; el botón volver del detalle replica el
-  comportamiento previo.
-- El header (`hello_user`/subtítulos), status pill y toast viven en el `Scaffold`
-  de `main`, igual que en el `MainActivity` original.
+## 3. Navegación
 
-## 5. Componentes principales (catálogo Compose entregado)
+`ui/AppNav.kt` → `NavHost(startDestination = if (isLoggedIn) "orders" else "login")`
 
-| Componente | Rol |
-|---|---|
-| `ValidatedTextField` | `OutlinedTextField` + validación, `isError` y `supportingText` por campo |
-| `PasswordField` | Campo con ojo mostrar/ocultar (replica `LoginActivity.eyeToggle`) |
-| `OrderCard` | Card de pedido: cliente, dirección, total, comisión, `cantidad × nombre — descripción` + notas |
-| `OrderDetailSheet` | Detalle expandible heredado de `view_order_detail` |
-| `StatusPill` | Pill online/offline con dot |
-| `ToggleRow` | Fila switch para las 5 preferencias (modo oscuro, notif, ubicación, sonido, idioma es/en) |
-| `PeriodPills` | Selector día/semana/mes/año (pestaña Ganancias) |
-| `EarningsChart` | Gráfica circular reutilizando la lógica de `PieView` → `Canvas` |
-| `ToastHost` | Toast custom animado (replica `showToast`) |
-| `LoadingState` / `ErrorState` | Pantallas de carga y error con reintento (desde `ui/common`) |
-| `ThemeB/N` + `strings es/en` | Tema blanco/negro y soporte de idioma preservados |
+| Ruta | Pantalla | Notas |
+|---|---|---|
+| `login` | `LoginScreen` | al autenticar: `navigate("orders") { popUpTo("login") { inclusive = true } }` |
+| `orders` | `OrdersScreen` | destino inicial con sesión |
+| `map` | `TrackingScreen` | |
+| `earnings` | `EarningsScreen` | |
+| `profile` | `ProfileScreen` | logout: `navigate("login") { popUpTo(0) }` |
+| `notifications` | `NotificationsScreen` | acceso desde la campana del header |
 
-## 6. Validaciones implementadas
+- El **back** del sistema lo gestiona el `NavHost` (sin `onBackPressed` deprecado).
+- Cada destino crea su ViewModel con `viewModel(factory = container.xFactory())`, así
+  el grafo de DI sigue siendo manual (`AppContainer`).
+- `MainScaffold` unifica header (saludo, pill online/offline, campana), banner de
+  conectividad, contenido y `NavigationBar`.
 
-- **Login**
-  - Correo: no vacío y formato con regex (`^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$`).
-  - Contraseña: no vacía y mínimo **6** caracteres.
-  - Error por campo (`isError` + `supportingText`); botón inhabilitado si el
-    formulario es inválido.
-  - Estados `Idle/Loading/Error/Success` reutilizando `LoginState` del
-    `LoginViewModel`.
-- **Perfil**
-  - Nombre: no vacío (mín. 2 caracteres).
-  - Teléfono: solo dígitos, **7–15**.
-  - Vehículo (`CARRO|BICICLETA|MOTO`): selección requerida al guardar.
-- **Preferencias**: switches booleanos (sin validación), idioma es/en.
+## 4. Catálogo de componentes (`ui/components/`)
 
-## 7. Criterios de aceptación — definición de terminado del sprint
+| Componente | Archivo | Rol |
+|---|---|---|
+| `ValidatedTextField` | `Fields.kt` | `OutlinedTextField` + `isError` + `supportingText` |
+| `PasswordField` | `Fields.kt` | campo con ojo mostrar/ocultar |
+| `OrderCard` | `OrderCard.kt` | pedido con cliente, dirección, total, comisión, items |
+| `OrderDetailSheet` | `OrderCard.kt` | detalle completo + acciones |
+| `StatusPill` | `Common.kt` | pill online/offline con dot |
+| `ToggleRow` | `Common.kt` | fila switch para las 5 preferencias |
+| `PeriodPills` | `Charts.kt` | selector día/semana/mes/año (y pestañas de Órdenes) |
+| `EarningsChart` | `Charts.kt` | dona + barras en `Canvas` |
+| `ToastHost` | `Common.kt` | toast animado que resuelve textos i18n |
+| `LoadingStateBox` / `ErrorStateBox` / `EmptyStateBox` / `BusyOverlay` | `Common.kt` | estados de pantalla |
 
-- [x] Navegación `NavHost` + `NavigationBar` con back funcional entre las 4 pestañas.
-- [x] Componentes del catálogo reutilizables y sin duplicación con el XML migrado.
-- [x] Validaciones de login y perfil bloquean el envío si el formulario es inválido.
-- [x] Estados de carga/error con reintento en todas las pantallas.
-- [x] Tema B/N y soporte es/en preservados.
-- [x] Mapa osmdroid operativo vía `AndroidView`.
-- [x] Los **16 tests** unitarios siguen en verde (sin cambios de contrato).
+El tema (`ui/theme/Theme.kt`) replica la paleta B/N en claro y oscuro y usa la familia
+`Inter` de `res/font/`.
 
-## 8. Trazabilidad
+## 5. Validaciones implementadas
 
-| Recurso | Lugar |
-|---|---|
-| Historias cubiertas | `docs/01-requisitos.md` — HU-01 (login), HU-02 (perfil), HU-03 (órdenes), HU-04 (mapa), HU-05 (ganancias), HU-06 (preferencias) |
-| No funcionales | `docs/02-requerimientos-no-funcionales.md` (compatibilidad, idioma, mantenibilidad) |
-| Arquitectura | `docs/04-arquitectura.md` (MVVM; la UI migró, `domain/data` se mantuvieron) |
-| Sprints | `docs/03-sprints.md` (Sprint 5 integrado en la planificación) |
+Se movieron al ViewModel para poder testearlas sin UI (`LoginViewModel.validateEmail`,
+`validatePassword`), y la UI sólo pinta el `@StringRes` devuelto.
+
+| Campo | Regla | Texto |
+|---|---|---|
+| Correo | vacío → error; con `@` debe cumplir `^[^@\s]+@[^@\s]+\.[^@\s]+$`; sin `@` se acepta usuario (modo dev) | `error_email_required` / `error_email_invalid` |
+| Contraseña | ≥ 6 caracteres | `error_password_short` |
+| Nombre | ≥ 2 caracteres | `error_name_short` |
+| Teléfono | 7–15 dígitos | `error_phone_invalid` |
+| Vehículo | selección obligatoria entre `Bicicleta / Moto / Auto` | — |
+
+El botón de login queda **inhabilitado** mientras el formulario no sea válido
+(`enabled = !loading && formValid`).
+
+## 6. Criterios de aceptación
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| NavHost + NavigationBar con back funcional | ✅ | `ui/AppNav.kt`, `ui/main/MainScaffold.kt` |
+| Componentes reutilizables sin duplicar el XML | ✅ | 10 componentes en `ui/components/` |
+| Validaciones bloquean el envío inválido | ✅ | `LoginViewModelTest` (6 tests) |
+| Carga/error con reintento en todas las pantallas | ✅ | `LoadingStateBox`, `ErrorStateBox`, `EmptyStateBox` |
+| Tema B/N y es/en preservados | ✅ | `ui/theme/Theme.kt` + 166 claves por idioma |
+| Mapa osmdroid vía `AndroidView` | ✅ | `TrackingScreen.kt` |
+| Tests en verde tras la migración | ✅ | **51 tests, 0 fallos** |
+
+## 7. Deuda conocida
+
+- Sin emulador en la máquina de desarrollo, la verificación es **compilación + 51 tests
+  unitarios**; falta un smoke test visual en dispositivo.
+- `ProfileScreen.kt` (394 líneas) y `TrackingScreen.kt` (356) son las pantallas más
+  grandes; si crecen conviene extraer sub-composables por sección.
+- El bottom bar se construyó con `NavigationBar` + ítems propios porque
+  `NavigationBarItem` de material3 1.1.1 no resolvía en este classpath
+  (verificable en `MainScaffold.kt`); funcionalmente es el mismo patrón.

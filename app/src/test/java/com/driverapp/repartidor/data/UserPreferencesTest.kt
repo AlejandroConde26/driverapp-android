@@ -1,66 +1,76 @@
 package com.driverapp.repartidor.data
 
-import android.content.SharedPreferences
 import com.driverapp.repartidor.data.local.UserPreferences
-import io.mockk.every
-import io.mockk.mockk
+import com.driverapp.repartidor.testUserPreferences
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
+/** Sprint 6 · UserPreferences sobre PreferencesDataStore (Flow + suspend). */
+@OptIn(ExperimentalCoroutinesApi::class)
 class UserPreferencesTest {
 
-    private fun fakePrefs(initial: Map<String, Any?> = emptyMap()): SharedPreferences {
-        val data = initial.toMutableMap()
-        val editor = mockk<SharedPreferences.Editor>(relaxed = true)
-        every { editor.putBoolean(any(), any()) } answers {
-            data[firstArg<String>()] = secondArg<Boolean>()
-            editor
-        }
-        every { editor.putString(any(), any()) } answers {
-            data[firstArg<String>()] = secondArg<String>()
-            editor
-        }
-        val prefs = mockk<SharedPreferences>()
-        every { prefs.getBoolean(any(), any()) } answers {
-            data[firstArg<String>()] as? Boolean ?: secondArg()
-        }
-        every { prefs.getString(any(), any()) } answers {
-            data[firstArg<String>()] as? String ?: secondArg()
-        }
-        every { prefs.edit() } returns editor
-        return prefs
+    @get:Rule
+    val tmp = TemporaryFolder()
+
+    @Test
+    fun `valores por defecto`() = runTest {
+        val prefs = testUserPreferences(tmp.root, backgroundScope)
+
+        assertFalse(prefs.darkMode.first())
+        assertTrue(prefs.notificationsEnabled.first())
+        assertTrue(prefs.locationEnabled.first())
+        assertTrue(prefs.notificationSound.first())
+        assertTrue(prefs.showBalance.first())
+        assertEquals(UserPreferences.LANG_ES, prefs.language.first())
     }
 
     @Test
-    fun `valores por defecto`() {
-        val prefs = UserPreferences(fakePrefs())
+    fun `las 5 preferencias se guardan y leen`() = runTest {
+        val prefs = testUserPreferences(tmp.root, backgroundScope)
 
-        assertFalse(prefs.darkMode)
-        assertTrue(prefs.notificationsEnabled)
-        assertTrue(prefs.locationEnabled)
-        assertTrue(prefs.notificationSound)
-        assertTrue(prefs.showBalance)
-        assertEquals(UserPreferences.LANG_ES, prefs.language)
+        prefs.setDarkMode(true)
+        prefs.setNotificationsEnabled(false)
+        prefs.setLocationEnabled(false)
+        prefs.setNotificationSound(false)
+        prefs.setShowBalance(false)
+        prefs.setLanguage(UserPreferences.LANG_EN)
+
+        assertTrue(prefs.darkMode.first())
+        assertFalse(prefs.notificationsEnabled.first())
+        assertFalse(prefs.locationEnabled.first())
+        assertFalse(prefs.notificationSound.first())
+        assertFalse(prefs.showBalance.first())
+        assertEquals(UserPreferences.LANG_EN, prefs.language.first())
     }
 
     @Test
-    fun `las 5 preferencias se guardan y leen`() {
-        val prefs = UserPreferences(fakePrefs())
+    fun `toggleShowBalance invierte y devuelve el nuevo valor`() = runTest {
+        val prefs = testUserPreferences(tmp.root, backgroundScope)
 
-        prefs.darkMode = true
-        prefs.notificationsEnabled = false
-        prefs.locationEnabled = false
-        prefs.notificationSound = false
-        prefs.showBalance = false
-        prefs.language = UserPreferences.LANG_EN
+        assertFalse(prefs.toggleShowBalance())
+        assertFalse(prefs.showBalance.first())
+        assertTrue(prefs.toggleShowBalance())
+        assertTrue(prefs.showBalance.first())
+    }
 
-        assertTrue(prefs.darkMode)
-        assertFalse(prefs.notificationsEnabled)
-        assertFalse(prefs.locationEnabled)
-        assertFalse(prefs.notificationSound)
-        assertFalse(prefs.showBalance)
-        assertEquals(UserPreferences.LANG_EN, prefs.language)
+    @Test
+    fun `snapshot devuelve todas las claves de una vez`() = runTest {
+        val prefs = testUserPreferences(tmp.root, backgroundScope)
+        prefs.setDarkMode(true)
+        prefs.setNotificationSound(false)
+
+        val snapshot = prefs.snapshot()
+
+        assertTrue(snapshot.darkMode)
+        assertFalse(snapshot.notificationSound)
+        assertTrue(snapshot.notificationsEnabled)
+        assertEquals(UserPreferences.LANG_ES, snapshot.language)
     }
 }

@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DriverApp</string>
+
+    <!-- Login -->
     <string name="login_subtitle">Delivery Platform</string>
     <string name="email_label">Email or Username</string>
     <string name="password_label">Password</string>
     <string name="login">Sign In</string>
+    <string name="forgot_password">Forgot your password? Contact your administrator</string>
+
+    <!-- Navigation -->
     <string name="tab_orders">Orders</string>
     <string name="tab_map">Map</string>
     <string name="tab_earnings">Earnings</string>
     <string name="tab_profile">Profile</string>
+    <string name="tab_notifications">Updates</string>
 
     <string name="status_online">Online</string>
     <string name="status_offline">Offline</string>
@@ -16,7 +22,9 @@
     <string name="subtitle_map">Your live delivery status</string>
     <string name="subtitle_earnings">Your income summary</string>
     <string name="subtitle_profile">Manage your account and preferences</string>
+    <string name="subtitle_notifications">Alerts about your orders</string>
 
+    <!-- Orders -->
     <string name="tab_assigned">Assigned</string>
     <string name="tab_history">History</string>
     <string name="show_detail">View Detail</string>
@@ -24,10 +32,79 @@
     <string name="reject">Reject</string>
     <string name="view_tracking">View Tracking</string>
     <string name="btn_accept">Accept</string>
-
     <string name="empty_orders">No orders for now</string>
     <string name="empty_history">No history yet</string>
+    <string name="order_label">Order #%1$s</string>
+    <string name="order_items_title">Items of order #%1$s</string>
+    <string name="order_items_empty">This order has no items (direct order)</string>
+    <string name="order_items_count">%1$d items</string>
+    <string name="order_status">Status</string>
+    <string name="order_payment">Payment</string>
+    <string name="order_fee">Delivery fee</string>
+    <string name="order_distance">Distance</string>
+    <string name="order_eta">Estimated time</string>
+    <string name="detail_close">Close</string>
+    <string name="label_note">Note: %1$s</string>
+    <string name="status_accepted">Accepted</string>
+    <string name="status_on_the_way">On the way</string>
+    <string name="status_delivered">Delivered</string>
+    <string name="status_rejected">Rejected</string>
+    <string name="status_pending">Pending</string>
 
+    <!-- Confirmations -->
+    <string name="confirm_accept_title">Accept Order</string>
+    <string name="confirm_accept_body">Accept order #%1$s and head to the restaurant?</string>
+    <string name="confirm_reject_title">Reject Order</string>
+    <string name="confirm_reject_body">Are you sure you want to reject order #%1$s?</string>
+    <string name="confirm_complete_title">Complete Delivery</string>
+    <string name="confirm_complete_body">Confirm you delivered order #%1$s successfully?</string>
+    <string name="confirm_start_title">Leave the restaurant</string>
+    <string name="confirm_start_body">Do you have order #%1$s? It will be marked ON THE WAY and the ETA will point to the customer.</string>
+    <string name="confirm_logout_title">Sign Out</string>
+    <string name="confirm_logout_body">Are you sure you want to sign out?</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_accept_short">Accept</string>
+    <string name="action_reject">Reject</string>
+    <string name="action_delivered">Yes, delivered</string>
+    <string name="action_start">Yes, on my way</string>
+    <string name="action_logout">Sign out</string>
+
+    <!-- Map -->
+    <string name="map_no_active_order">You have no active order</string>
+    <string name="map_available">Available</string>
+    <string name="map_on_delivery">Delivering</string>
+    <string name="map_start_delivery">Left the restaurant</string>
+    <string name="map_complete_delivery">Complete delivery</string>
+    <string name="map_call_restaurant">Call restaurant</string>
+    <string name="map_no_phone">The restaurant has no phone number</string>
+    <string name="map_dial_error">Could not open the dialer</string>
+    <string name="map_localizing">Locating…</string>
+    <string name="map_activate_location">Enable real-time location in Profile</string>
+    <string name="map_activating_gps">Starting GPS…</string>
+    <string name="map_no_coordinates">Destination without coordinates</string>
+    <string name="map_live_speed">Current speed %1$s km/h · live</string>
+    <string name="map_eta_avg">ETA estimated at average speed</string>
+    <string name="map_my_location">My location</string>
+    <string name="eta_hours_short">0:%1$02d hrs</string>
+    <string name="eta_hours">%1$d:%2$02d hrs</string>
+
+    <!-- Earnings -->
+    <string name="period_day">Today</string>
+    <string name="period_week">Week</string>
+    <string name="period_month">Month</string>
+    <string name="period_year">Year</string>
+    <string name="earnings_deliveries">Deliveries</string>
+    <string name="earnings_tips">Tips</string>
+    <string name="earnings_bonuses">Bonuses</string>
+    <string name="earnings_other">Other</string>
+    <string name="earnings_orders_count">Orders</string>
+    <string name="earnings_total">Total earnings</string>
+    <string name="earnings_masked">$••••••</string>
+    <string name="earnings_toggle">Show or hide balance</string>
+    <string name="earnings_connected_time">-- hrs</string>
+
+    <!-- Profile and preferences -->
     <string name="prefs_title">Preferences</string>
     <string name="pref_dark_mode">Dark Mode</string>
     <string name="pref_notifications">Notifications</string>
@@ -38,4 +115,82 @@
     <string name="hello_user">Hi, %1$s!</string>
     <string name="my_earnings">My Earnings</string>
     <string name="my_profile">My Profile</string>
+    <string name="profile_edit">Edit Profile</string>
+    <string name="profile_vehicle">Vehicle Mode</string>
+    <string name="profile_payments">Payment Methods</string>
+    <string name="profile_help">Help Center</string>
+    <string name="profile_contact">Contact Support</string>
+    <string name="profile_terms">Terms and Conditions</string>
+    <string name="profile_payments_body">Cash and card on delivery. Settlements are shown in Earnings.</string>
+    <string name="profile_help_body">Check the documentation or contact support for help.</string>
+    <string name="profile_contact_body">soporte@driverapp.com</string>
+    <string name="profile_terms_body">By using DriverApp you accept the terms of service. Version 1.0.</string>
+    <string name="logout">Sign Out</string>
+    <string name="stats_orders">Deliveries</string>
+    <string name="stats_tips">Tips</string>
+    <string name="stats_total">Earnings</string>
+    <string name="stats_empty">—</string>
+    <string name="field_name">Name</string>
+    <string name="field_phone">Phone</string>
+    <string name="action_save">Save</string>
+    <string name="vehicle_bicycle">Bicycle</string>
+    <string name="vehicle_moto">Motorcycle</string>
+    <string name="vehicle_car">Car</string>
+    <string name="language_es">Español</string>
+    <string name="language_en">English</string>
+
+    <!-- Validations -->
+    <string name="error_email_required">Enter your email or username</string>
+    <string name="error_email_invalid">The email format is not valid</string>
+    <string name="error_password_short">Password must be at least 6 characters</string>
+    <string name="error_name_short">Name must be at least 2 characters</string>
+    <string name="error_phone_invalid">Phone must have 7 to 15 digits</string>
+    <string name="error_required">Required field</string>
+
+    <!-- States and connectivity -->
+    <string name="action_retry">Retry</string>
+    <string name="state_loading">Loading…</string>
+    <string name="offline_banner">Offline · showing saved data</string>
+    <string name="pending_sync">%1$d changes to sync</string>
+    <string name="session_expired">Your session expired. Please sign in again.</string>
+    <string name="error_generic">Unexpected error</string>
+
+    <!-- Notifications (S09) -->
+    <string name="notifications_title">Updates</string>
+    <string name="notifications_mark_read">Mark all as read</string>
+    <string name="notifications_empty">No updates</string>
+    <string name="notifications_dismiss">Dismiss</string>
+    <string name="notifications_read_badge">Read</string>
+    <string name="notifications_unread_badge">New</string>
+    <string name="notifications_all_read">All marked as read</string>
+
+    <!-- Messages -->
+    <string name="msg_order_accepted">Order accepted!</string>
+    <string name="msg_order_completed">Order completed! 🎉</string>
+    <string name="msg_order_rejected">Order rejected</string>
+    <string name="msg_order_on_the_way">On the way to the customer</string>
+    <string name="msg_profile_updated">Profile updated</string>
+    <string name="msg_vehicle_updated">Vehicle updated: %1$s</string>
+    <string name="msg_notifications_on">Notifications enabled</string>
+    <string name="msg_notifications_off">Notifications disabled</string>
+    <string name="msg_sound_on">Sound enabled</string>
+    <string name="msg_sound_off">Sound disabled</string>
+    <string name="msg_location_on">Real-time location enabled</string>
+    <string name="msg_location_off">Real-time location disabled</string>
+    <string name="msg_location_denied">Location permission denied</string>
+    <string name="msg_connected">Online</string>
+    <string name="msg_disconnected">Offline</string>
+    <string name="msg_queued">No network: the change will be sent when back online</string>
+
+    <!-- Foreground service -->
+    <string name="location_service_title">Location active</string>
+    <string name="location_service_text">Your position is reported while you are online</string>
+    <string name="location_channel_name">Real-time location</string>
+
+    <!-- S10 Firebase -->
+    <string name="firebase_disabled">Firebase not configured (dev mode)</string>
+    <string name="proof_uploading">Uploading proof…</string>
+    <string name="proof_uploaded">Proof uploaded</string>
+    <string name="proof_failed">Could not upload the proof</string>
+    <string name="proof_attach">Attach delivery proof</string>
 </resources>

@@ -134,5 +134,6 @@ data class NotificacionDto(
     val id: Int,
     val title: String,
     val message: String,
-    val read: Boolean
+    val read: Boolean,
+    @SerializedName("created_at") val createdAt: String? = null
 )

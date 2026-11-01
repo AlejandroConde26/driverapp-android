@@ -1,27 +1,31 @@
 package com.driverapp.repartidor.domain.repository
 
-import com.driverapp.repartidor.domain.model.Ganancia
 import com.driverapp.repartidor.domain.model.Pedido
-import com.driverapp.repartidor.domain.model.ResumenGanancias
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
+/**
+ * Pedidos del repartidor con caché local (Sprint 6).
+ *
+ * Las tres listas se leen de Room (offline-first); los `refresh*` son los que
+ * tocan la red y pueden lanzar [com.driverapp.repartidor.data.remote.ApiFailure].
+ */
 interface PedidoRepository {
 
-    val available: StateFlow<List<Pedido>>
-    val history: StateFlow<List<Pedido>>
-    val activeOrder: StateFlow<Pedido?>
+    val available: Flow<List<Pedido>>
+    val history: Flow<List<Pedido>>
+    val activeOrder: Flow<Pedido?>
+
+    /** Nº de transiciones pendientes de enviar (cola offline, S09). */
+    val pendingActions: Flow<Int>
 
     suspend fun refreshAvailable()
     suspend fun refreshHistory()
     suspend fun refreshActive()
 
     suspend fun detail(id: Long): Pedido
+
     suspend fun accept(id: Long): Pedido
     suspend fun reject(id: Long): Pedido
     suspend fun markInTransit(id: Long): Pedido
     suspend fun complete(id: Long): Pedido
-    fun markActive(pedido: Pedido?)
-
-    suspend fun earningsSummary(period: String): ResumenGanancias
-    suspend fun earningsHistory(): List<Ganancia>
 }

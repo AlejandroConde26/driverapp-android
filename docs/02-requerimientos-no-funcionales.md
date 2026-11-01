@@ -33,10 +33,12 @@
 - Formato de moneda `$` con separadores (es-MX en dashboard).
 
 ## 6. Compatibilidad y build
-- Android: Kotlin 1.9, minSdk 26, target/compile SDK 34, AGP 8.4.0, Gradle 8.6,
+- Android: Kotlin 1.9, minSdk 24, target/compile SDK 34, AGP 8.4.0, Gradle 8.6,
   JDK 17–21 (build con 21 verificado).
 - Build reproducible con wrapper: `./gradlew :app:assembleDebug :app:testDebugUnitTest`.
-- **16 tests unitarios** en verde (MockK + Turbine + coroutines-test) y **13 tests** de backend (pytest).
+- **51 tests unitarios** en verde (MockK + Turbine + coroutines-test + Robolectric) y **13 tests** de backend (pytest).
+- UI en **Jetpack Compose** (Compose 1.5 / compiler 1.5.0 emparejado con Kotlin 1.9.0);
+  persistencia local con **DataStore + Room** y repositorios cache-first.
 
 ## 7. Mantenibilidad
 - Arquitectura MVVM limpia con separación `domain` (Kotlin puro) / `data` / `di` / `ui`.

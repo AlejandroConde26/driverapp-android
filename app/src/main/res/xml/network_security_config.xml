@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S08 · Seguridad de transporte.
+  Por defecto se prohíbe tráfico en claro. La única excepción es el backend de
+  desarrollo (IP fija, sin TLS). Al mover el backend a HTTPS basta con borrar el
+  bloque <domain-config>.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">169.58.190.93</domain>
+    </domain-config>
+</network-security-config>

@@ -1,165 +1,147 @@
-# DriverApp / SUMAQ — Sprint 06: Persistencia local con DataStore, Room y patrón Repository (ejecutado)
+# Sprint 06 — Persistencia local: DataStore, SQLite/Room y patrón Repository (ejecutado)
 
-**Encargo de práctica de campo — fecha de entrega: 09 de octubre, 23:59 h (cumplida)**
-
-> *Ejecutar sprint de persistencia local con DataStore, SQLite/Room y patrón
-> Repository. Presentar evidencia de arquitectura MVVM.*
-
-Se ejecutó sobre la app Android del repartidor (paquete `com.driverapp.repartidor`):
-persistencia local real y evidencia de arquitectura MVVM entregada.
+**Estado: cumplido.** Preferencias en `PreferencesDataStore`, caché offline en Room y
+los repositorios de pedidos y ganancias leen primero de la base local.
 
 ---
 
-## 1. Objetivo cumplido
+## 1. Esquema real (`AppDatabase` v1)
 
-Se incorporó persistencia local real:
-- **DataStore** (`PreferenceDataStore`) para las preferencias de usuario.
-- **Room (SQLite)** como caché local de pedidos y ganancias (offline-first).
-- **Patrón Repository** cache-first que combina fuente local + remota.
-- **Evidencia de arquitectura MVVM** entregada en `docs/04` y `README`.
-
-## 2. Estado inicial del sprint
-
-| Aspecto | Estado inicial | Cambio del sprint |
-|---|---|---|
-| Preferencias | `SharedPreferences` llano (`UserPreferences`, archivo `driverapp_prefs`) | Migrado a **PreferenceDataStore** |
-| Sesión | `EncryptedSharedPreferences` (`TokenDataStore`, AES256_SIV/GCM) `driverapp_secret` | Se mantuvo **intacta** (sigue cifrada) |
-| BD local | No había (sin Room) | Se creó **AppDatabase + DAOs** |
-| Repository | `AuthRepository`, `PedidoRepository`, `LocationRepository`; impls `AuthRepositoryImpl`/`PedidoRepositoryImpl` → fuente **remota** (Retrofit) | Se añadió **fuente local** y repo **cache-first** |
-| MVVM | Ya implementado (`docs/04`, README) | Actualizado con la nueva capa local |
-
-> Nota: a pesar de su nombre, `TokenDataStore` no es Jetpack DataStore; era
-> `EncryptedSharedPreferences`. La sesión se mantuvo así por seguridad.
-
-## 3. DataStore — preferencias (migrado)
-
-`UserPreferences` se migró a **`PreferencesDataStore`** (coroutines + `Flow`):
-
-```kotlin
-// data/local/UserPreferences.kt
-val Context.userPrefsDataStore by preferencesDataStore(name = "driverapp_prefs")
-
-class UserPreferences(private val context: Context) {
-    val darkMode: Flow<Boolean>        // key "dark"
-    val notificationsEnabled: Flow<Boolean>  // key "notifications"
-    val locationEnabled: Flow<Boolean> // key "location"
-    val notificationSound: Flow<Boolean>     // key "sound"
-    val showBalance: Flow<Boolean>     // key "show_balance"
-    val language: Flow<String>         // key "language" ("es" | "en")
-    suspend fun setX(value: ...)       // edit { ... } helpers
-}
-```
-
-- Los ViewModels recogen el `Flow` (`stateIn`) en lugar de leer el valor directo.
-- Contrato de claves y defaults idéntico al previo:
-  `dark=false`, `notifications=true`, `location=true`, `sound=true`,
-  `show_balance=true`, `language="es"`.
-- La **sesión cifrada** (`TokenDataStore`) no se tocó: token + usuario siguen en
-  `EncryptedSharedPreferences`.
-
-## 4. Room — SQLite local (implementado)
-
-### 4.1 Esquema v1 (`AppDatabase`)
+Archivo: `data/local/db/AppDatabase.kt` · esquema exportado en
+`app/schemas/com.driverapp.repartidor.data.local.db.AppDatabase/1.json`
 
 ```
-├── orders_cache                                # caché offline de pedidos
-│   ├── order_id       TEXT  PK                 # id de pedido (backend)
-│   ├── status         TEXT                     # PENDIENTE|ACEPTADO|EN_CAMINO|ENTREGADO|RECHAZADO
-│   ├── client_name    TEXT
-│   ├── client_address TEXT
-│   ├── dest_lat/lng   REAL
-│   ├── delivery_fee   REAL
-│   ├── total          REAL
-│   ├── payment_method TEXT
-│   └── updated_at     INTEGER (epoch)
-│
-├── order_items_cache                            # ítems de cada pedido (1-N)
-│   ├── id           INTEGER PK AUTOINCREMENT
-│   ├── order_id     TEXT  FK → orders_cache   (CASCADE)
-│   ├── product_name TEXT
-│   ├── description  TEXT
-│   ├── notes        TEXT
-│   └── quantity     INTEGER
-│
-└── earnings_cache                               # resumen por periodo
-    ├── period        TEXT  PK                  # day|week|month|year
-    ├── total         REAL
-    ├── delivered     INTEGER
-    └── updated_at    INTEGER (epoch)
+orders_cache                     cacé offline de pedidos
+├── orderId       INTEGER PK     id del backend
+├── restaurantId  INTEGER
+├── driverId      INTEGER NULL
+├── clientName / clientAddress   TEXT
+├── destLat / destLng            REAL
+├── status        TEXT           PENDIENTE|ACEPTADO|EN_CAMINO|ENTREGADO|RECHAZADO
+├── total / deliveryFee          REAL
+├── paymentMethod                TEXT
+├── distanceKm / estTimeMin      REAL / INTEGER
+├── restaurantName/Address/Phone/Lat/Lng   (aplanado, evita otra tabla)
+├── bucket        TEXT           AVAILABLE|ACTIVE|HISTORY  (índice)
+└── updatedAt     INTEGER        epoch millis (índice + TTL)
+
+order_items_cache                items de cada pedido (1-N)
+├── id            INTEGER PK AUTOINCREMENT
+├── orderId       FK → orders_cache(orderId) ON DELETE CASCADE  (índice)
+├── menuItemId / productName / description / notes
+└── quantity / unitPrice
+
+earnings_cache                   resumen por periodo
+├── period        TEXT PK        day|week|month|year
+├── total / deliveriesTotal / tipsTotal / bonusesTotal / otherTotal
+├── ordersCount   INTEGER
+├── chartLabelsJson / chartValuesJson   TEXT (Gson)
+└── updatedAt
+
+earnings_history_cache           movimientos de ganancias
+├── id            INTEGER PK
+├── driverId / orderId / amount / type / clientName / createdAt
+└── updatedAt
+
+pending_actions                  cola offline de transiciones (S09)
+├── id            INTEGER PK AUTOINCREMENT
+├── orderId       INTEGER (índice)
+├── type          TEXT   ACCEPT|REJECT|IN_TRANSIT|COMPLETE
+├── createdAt / attempts / lastError
 ```
 
-### 4.2 DAOs y migraciones (implementados)
+> **Nota sobre el "diseño anterior":** este documento describía 3 tablas que nunca se
+> implementaron. El esquema real tiene 5: se añadieron `earnings_history_cache` (el
+> historial no cabía en el resumen) y `pending_actions` (cola offline del sprint S09).
 
-- `OrderDao`: `upsertAll(orders)`, `getByStatus(status)`, `getById(id)`,
-  `getAllByStatusIn(...)`, `deleteOlderThan(ts)` (TTL), `clear()`.
-- `OrderItemDao`: `upsertAll(items)`, `getForOrder(orderId)` (join 1-N).
-- `EarningsDao`: `upsert(summary)`, `getByPeriod(period)`.
-- Migraciones declaradas (v1 → …) sin `fallbackToDestructiveMigration()` en
-  producción; esquema exportado a `app/schemas/`.
+## 2. DAOs
 
-### 4.3 `LocalDataSource` (implementado)
+`data/local/db/Daos.kt`
 
-```kotlin
-class LocalDataSource(db: AppDatabase) {
-    val orderDao = db.orderDao(); val itemDao = db.orderItemDao()
-    val earningsDao = db.earningsDao()
-    // operaciones suspendidas, ámbito IO (gestionado por Room)
-}
-```
-
-## 5. Patrón Repository cache-first (implementado)
-
-- **`PedidoRepositoryImpl`** (interfaz `PedidoRepository`):
-  1. Lee de **Room** (`orders_cache`) y emite al instante.
-  2. Consulta la **red** (`PedidoApiService`).
-  3. Actualiza la caché (`upsertAll`) y re-emite.
-  4. Estados de error: si no hay red, devuelve la **caché** (offline-first) +
-     señal de "sin conexión".
-- **`EarningsRepositoryImpl`**: mismo patrón con `earnings_cache` por periodo.
-- Se inyectan en `AppContainer` (`LocalDataSource` + remote); los ViewModels de
-  Órdenes y Ganancias dependen del repo cache-first.
-
-Flujo: `UI → ViewModel → UseCase → Repository (local→red→caché) → DAO / Retrofit`.
-
-## 6. Dependencias incorporadas
-
-```
-implementation("androidx.datastore:datastore-preferences:1.1.x")
-implementation("androidx.room:room-runtime:2.6.x")
-implementation("androidx.room:room-ktx:2.6.x")
-kapt("androidx.room:room-compiler:2.6.x")   // o KSP
-implementation("androidx.sqlite:sqlite-ktx:2.4.x")
-```
-
-> Se activó KSP/kapt (`room-compiler`). Tests de integración con `room-testing`
-> (in-memory).
-
-## 7. Evidencia de arquitectura MVVM (entregada)
-
-1. **Diagrama de capas** actualizado en `docs/04-arquitectura.md`:
-   `domain` (Kotlin puro) → `data/remote` + `data/local` → `di/AppContainer` → `ui/`.
-2. **Flujo de datos** documentado con el nuevo camino cache-first.
-3. **Modelo de datos local** (tablas, claves, DAOs) en `docs/04` y en este documento.
-4. **Tests**: `UserPreferencesTest` (DataStore, defaults + escritura), DAOs con
-   Room in-memory (`orders_cache`, `earnings_cache`) y `PedidoRepositoryImplTest`
-   cache-first (MockK de `LocalDataSource`) — además de los 16 existentes.
-
-## 8. Criterios de aceptación — definición de terminado del sprint
-
-- [x] Preferencias leídas/escritas vía `PreferenceDataStore` (Flow), mismo contrato de claves.
-- [x] `AppDatabase` v1 con `orders_cache`, `order_items_cache`, `earnings_cache` + DAOs y migraciones.
-- [x] `PedidoRepositoryImpl` cache-first (local → red → refresca caché) y repo de ganancias.
-- [x] App funciona **sin conexión** leyendo la caché de pedidos y ganancias.
-- [x] Sesión sigue cifrada en `TokenDataStore` (sin cambios).
-- [x] `docs/04-arquitectura.md` y `README.md` actualizados con la capa local (evidencia MVVM).
-- [x] Tests en verde (16 existentes + nuevos de DataStore/DAO/Repository).
-
-## 9. Trazabilidad
-
-| Recurso | Lugar |
+| DAO | Operaciones |
 |---|---|
-| Historias cubiertas | `docs/01-requisitos.md` — HU-03 (órdenes con **reintento sin conexión**), HU-05 (historial de ganancias), HU-06 (preferencias) |
-| No funcionales | `docs/02-requerimientos-no-funcionales.md` (seguridad de sesión, robustez offline) |
-| Arquitectura y modelo local | `docs/04-arquitectura.md` (MVVM + `UserPreferences`/`TokenDataStore`) |
-| Sprints | `docs/03-sprints.md` (Sprint 6 integrado en la planificación) |
-| Entrega | Cumplida — **09 de octubre, 23:59 h** |
+| `OrderDao` | `observeByBucket`, `getByBucket`, `getById`, `observeFirstOfBucket`, `upsert(All)`, `insertItems`, `deleteItems`, `deleteByBucket`, `updateStatus`, `deleteHistoryOlderThan` (TTL), `clear` |
+| `EarningsDao` | `upsertSummary`, `getSummary`, `observeSummary`, `upsertHistory`, `getHistory`, `clearHistory`, `clearSummaries` |
+| `PendingActionDao` | `insert`, `all`, `observeCount`, `markFailed`, `delete`, `clear` |
+
+Sin `fallbackToDestructiveMigration()`: cualquier cambio de esquema futuro exige su
+`Migration` explícita, para no borrar la caché del repartidor por accidente.
+
+`LocalDataSource` (`data/local/db/LocalDataSource.kt`) es la única fachada sobre Room:
+convierte entidades ↔ dominio y expone `Flow` para la UI.
+
+## 3. DataStore — preferencias
+
+`data/local/UserPreferences.kt:20`
+
+```kotlin
+val Context.userPrefsDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "driverapp_prefs",
+    produceMigrations = { ctx -> listOf(SharedPreferencesMigration(ctx, "driverapp_prefs")) }
+)
+```
+
+- **Migración**: quien ya tenía el `SharedPreferences` `driverapp_prefs` conserva sus
+  valores (mismas claves: `dark`, `notifications`, `location`, `sound`, `show_balance`,
+  `language`).
+- **Lectura**: `Flow<Boolean>` / `Flow<String>` → los ViewModels hacen `stateIn`.
+- **Escritura**: funciones `suspend` (`setDarkMode`, `setLanguage`, `toggleShowBalance`…).
+- **Excepción documentada**: `snapshot()` es una lectura puntual que se usa en
+  `App.onCreate` (tema e idioma antes de inflar la primera pantalla) y en el servicio
+  FCM, ambos contextos no suspendibles. Está encapsulada y marcada como tal.
+
+La sesión sigue en `TokenDataStore` (`EncryptedSharedPreferences`, AES256-SIV/GCM):
+**no** se migró porque el Keystore no protege un fichero DataStore en claro.
+
+## 4. Repository cache-first
+
+`PedidoRepositoryImpl` (`data/repository/PedidoRepositoryImpl.kt`):
+
+```
+lectura  → local.observeBucket(bucket)              (Room, siempre disponible)
+refresco → api.availableOrders() → local.replaceBucket()  (red → caché)
+fallo    → la caché queda servida; el error se propaga tipado a la UI
+```
+
+| Detalle | Implementación |
+|---|---|
+| Listas | `available`, `history`, `activeOrder` son `Flow` desde Room (`:32-34`) |
+| Refresh | `refreshAvailable/History/Active` escriben en caché en una transacción |
+| Bug corregido | `refreshActive` con lista vacía **limpia** `ACTIVE` (antes quedaba pegado un pedido ya cerrado) |
+| TTL | `purgeHistoryOlderThan(15 días)` en cada refresh (`HISTORY_TTL_DAYS`) |
+| Transiciones | `transition()` (`:80`): red primero; sin red → encola + aplica optimista |
+| Buckets | `accept/inTransit` → `ACTIVE`; `complete/reject` → `HISTORY` |
+
+`EarningsRepositoryImpl` aplica el mismo patrón sobre `earnings_cache` y
+`earnings_history_cache`: si la red falla devuelve lo cacheado; si no hay nada
+cacheado, propaga el error.
+
+## 5. Consecuencia verificable
+
+| Escenario | Comportamiento |
+|---|---|
+| Sin red al abrir Órdenes | se ven los pedidos cacheados + banner "Sin conexión" |
+| Sin red al completar una entrega | se aplica en caché y se encola; el banner muestra "1 cambio por enviar" |
+| Vuelve la red | `OrderSyncWorker` reenvía en orden FIFO y borra la acción |
+| Ganancias sin red | se sirve el último resumen cacheado por periodo |
+
+## 6. Tests (Sprint 6)
+
+| Test | Qué ejercita |
+|---|---|
+| `UserPreferencesTest` (4) | DataStore real sobre fichero temporal: defaults, escritura de las 5 claves, `toggleShowBalance`, `snapshot` |
+| `OrderDaoTest` (6) | Room in-memory con Robolectric: pedido + items, `replaceBucket`, `moveTo`, cola de acciones, caché de ganancias, `clearOrders` |
+| `PedidoRepositoryImplTest` (8) | cache-first: escribe en el bucket correcto, `EN_CAMINO`, `HISTORY`, encolado sin red, 404 no se encola, `detail` cae a caché |
+
+Comando: `./gradlew :app:testDebugUnitTest` → 51 tests, 0 fallos.
+
+## 7. Evidencia de arquitectura MVVM
+
+```
+UI (Compose) → ViewModel (StateFlow) → UseCase → Repository (cache-first)
+                                                      ├── LocalDataSource → Room
+                                                      └── ApiService → Retrofit
+```
+
+`domain/` sigue sin importar Android ni Retrofit (verificable con
+`grep -rn "import android" app/src/main/java/com/driverapp/repartidor/domain` → vacío).

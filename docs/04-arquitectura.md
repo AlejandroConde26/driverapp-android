@@ -16,7 +16,7 @@ app/src/main/java/com/driverapp/repartidor/
 │   │                            #   Ganancia, ResumenGanancias, Restaurante, Geo
 │   ├── repository/              # Interfaces: AuthRepository, PedidoRepository,
 │   │                            #   LocationRepository
-│   └── usecase/                 # 15 casos: Login, ObtenerPedidosDisponibles,
+│   └── usecase/                 # 18 casos: Login, ObtenerPedidosDisponibles,
 │                                #   Aceptar/Rechazar/EnCamino/Entregado, Ganancias,
 │                                #   Ubicación, Perfil, Vehículo, Estado en línea…
 ├── data/                        # Implementaciones
@@ -25,7 +25,7 @@ app/src/main/java/com/driverapp/repartidor/
 │   ├── repository/              # AuthRepositoryImpl, PedidoRepositoryImpl
 │   ├── firebase/                # Auth, Messaging, service FCM, FirebaseConfig
 │   ├── hardware/gps/            # LocationRepositoryImpl + LocationTracker
-│   └── local/                   # TokenDataStore (cifrado), UserPreferences
+│   └── local/                   # TokenDataStore (cifrado), UserPreferences (DataStore), db/ (Room), queue/
 ├── di/                          # AppContainer (DI manual) + ViewModelFactory
 └── ui/                          # Un ViewModel por pantalla (login, main, orders,
                                  #   tracking, earnings, profile) + common
@@ -52,12 +52,14 @@ El backend filtra por `restaurant_id` (la app solo ve SUMAQ, id=5).
 
 ## 2. Modelo de datos local
 
-Dos piezas en `data/local/`, un fichero de preferencias y uno de sesión.
+Dos piezas en `data/local/`, más la caché de Room (`data/local/db/`).
 
 ### 2.1 UserPreferences — fichero `driverapp_prefs`
 
-Se accede vía `SharedPreferences` (una única instancia inyectada en
-`ProfileViewModel` y `EarningsViewModel`).
+Se accede vía `PreferencesDataStore` (Flow para lectura, `suspend` para escritura),
+con migración automática desde el `SharedPreferences` antiguo. Ver
+`docs/06-sprint-persistencia-local.md` §3 y la tabla de claves siguiente.
+Una única instancia se inyecta en `ProfileViewModel`, `EarningsViewModel` y `App`.
 
 | Clave | Propiedad | Tipo | Default | Uso |
 |---|---|---|---|---|

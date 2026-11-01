@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- S10 · fotos de comprobante de entrega -->
+    <cache-path name="proof_cache" path="proofs/" />
+    <files-path name="proof_files" path="proofs/" />
+</paths>

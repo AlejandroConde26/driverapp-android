@@ -2,22 +2,26 @@ package com.driverapp.repartidor.ui.earnings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.driverapp.repartidor.data.local.UserPreferences
 import com.driverapp.repartidor.domain.model.Ganancia
 import com.driverapp.repartidor.domain.model.ResumenGanancias
-import com.driverapp.repartidor.data.local.UserPreferences
 import com.driverapp.repartidor.domain.usecase.ObtenerGananciasUseCase
 import com.driverapp.repartidor.domain.usecase.ObtenerHistorialGananciasUseCase
+import com.driverapp.repartidor.ui.common.ErrorState
 import com.driverapp.repartidor.ui.common.LoadingState
 import com.driverapp.repartidor.ui.common.UiMessenger
+import com.driverapp.repartidor.ui.common.toErrorState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class EarningsViewModel(
     private val resumen: ObtenerGananciasUseCase,
     private val historial: ObtenerHistorialGananciasUseCase,
     private val messenger: UiMessenger,
-    val prefs: UserPreferences
+    private val prefs: UserPreferences
 ) : ViewModel() {
 
     private val _earnings = MutableStateFlow<ResumenGanancias?>(null)
@@ -29,25 +33,42 @@ class EarningsViewModel(
     private val _loading = MutableStateFlow<LoadingState>(LoadingState.Idle)
     val loading: StateFlow<LoadingState> = _loading
 
-    fun loadEarnings(period: String) {
+    private val _error = MutableStateFlow<ErrorState>(ErrorState.None)
+    val error: StateFlow<ErrorState> = _error
+
+    /** El botón ojo lee la preferencia desde DataStore (Sprint 6). */
+    val showBalance: StateFlow<Boolean> =
+        prefs.showBalance.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    private val _period = MutableStateFlow("day")
+    val period: StateFlow<String> = _period
+
+    fun load(period: String) {
+        _period.value = period
         viewModelScope.launch {
             _loading.value = LoadingState.Loading
-            _earnings.value = runCatching { resumen(period) }
-                .onFailure { messenger.show("Error al cargar ganancias: ${it.message}") }
-                .getOrNull()
+            _error.value = ErrorState.None
+            val result = runCatching { resumen(period) }
+            _earnings.value = result.getOrNull()
+            result.exceptionOrNull()?.let {
+                _error.value = it.toErrorState()
+                messenger.showRaw(it.message ?: "Error")
+            }
             _loading.value = LoadingState.Idle
         }
     }
 
     fun refreshHistory() {
         viewModelScope.launch {
-            _earningsHistory.value = runCatching { historial() }.getOrDefault(emptyList())
+            runCatching { historial() }
+                .onSuccess { _earningsHistory.value = it }
+                .onFailure { _error.value = it.toErrorState() }
         }
     }
 
     fun toggleBalance() {
-        prefs.showBalance = !prefs.showBalance
-        // Re-emite el resumen actual para que la UI aplique la máscara al instante.
-        _earnings.value = _earnings.value
+        viewModelScope.launch { prefs.toggleShowBalance() }
     }
+
+    fun retry() = load(_period.value)
 }
