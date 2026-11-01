@@ -21,13 +21,15 @@ Estado del pedido: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO` (o `RECH
 | 6 | Persistencia local: DataStore, Room, Repository | ✅ | `OrderDaoTest` (6), `app/schemas/…/1.json` |
 | 7 | **S08** Integración con API REST y Retrofit | ✅ | 20/20 endpoints del `openapi.json`, `ApiErrorMapperTest` |
 | 8 | **S09** CRUD, errores, estados y conectividad | ✅ | cola offline + `OrdersViewModelTest` (6) |
-| 9 | **S10** Firebase: Auth, Firestore, Storage | 🟠 ² | Auth verificado (idToken real); Firestore pendiente de reglas; Storage fuera por plan |
+| 9 | **S10** Firebase: Auth, Firestore, Storage | ✅ ² | Auth (idToken real 974 chars) + Firestore (escritura 200, lectura 200, sin token 403); Storage fuera de alcance (plan Blaze) |
 
 ¹ El push FCM sólo funciona con un proyecto Firebase válido (ver sprint 9).
-² Auth verificado en runtime contra el proyecto real (`idToken` de 974 caracteres). Firestore
-existe pero necesita que se publiquen `firestore.rules` (hoy responde 403). Storage queda fuera
-de alcance: los proyectos Firebase nuevos exigen el plan Blaze para crear un bucket, y se decidió
-no activarlo; el código está listo y el botón del comprobante se oculta cuando no hay bucket.
+² Auth y **Firestore verificados en runtime** contra el proyecto real: `verify` crea un usuario y
+obtiene un `idToken` (974 caracteres); la escritura de `drivers/{uid}` devuelve **200**, la lectura
+devuelve el documento completo y un request **sin token devuelve 403** (las reglas se aplican).
+Storage queda **fuera de alcance**: los proyectos Firebase nuevos exigen el plan Blaze para crear
+un bucket y se decidió no activarlo — el enunciado del sprint admite "Firestore **o** Storage".
+El código de Storage está listo y el botón del comprobante se oculta cuando no hay bucket.
 
 Resultado de la suite: **51 tests, 0 fallos** (`./gradlew :app:testDebugUnitTest`).
 

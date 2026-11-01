@@ -147,6 +147,13 @@ cmd_verify() {
   if [ "$FS_CODE" = "200" ]; then ok "firestore OK"; else echo "  HTTP $FS_CODE: $(head -c 300 /tmp/s10_fs.json)"; die "Firestore rechazó la escritura (¿reglas no desplegadas?)"; fi
 
   say "3/3 Storage — subir deliveries/$UID_LOCAL.jpg"
+  if [ -z "${BUCKET:-}" ]; then
+    ok "omitido: Storage no configurado (requiere plan Blaze; fuera de alcance)"
+    say "S10 verificado en runtime (Auth + Firestore)"
+    echo "  Auth ✅   Firestore ✅   Storage ⛔ fuera de alcance   ($PROJ)"
+    exit 0
+  fi
+
   printf 'probe' > /tmp/s10_probe.jpg
   ST_CODE="$(curl -s -o /tmp/s10_st.json -w '%{http_code}' -X POST \
     "https://storage.googleapis.com/upload/storage/v1/b/$BUCKET/o?uploadType=media&name=deliveries/$UID_LOCAL.jpg" \

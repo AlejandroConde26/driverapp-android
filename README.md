@@ -84,7 +84,9 @@ git clone <repo> && cd driverapp-android-main
 
 ## Estado
 
-- Suite: **51 tests, 0 fallos**.
-- Sprint 5 (Compose) y Sprint 6 (DataStore/Room) **ejecutados y verificados**.
-- S10 (Firebase) implementado; la prueba en runtime queda pendiente de registrar el
-  package `com.driverapp.repartidor` en la consola de Firebase (ver `docs/S10` §5).
+- Suite: **51 tests, 0 fallos** · `lintDebug`: **0 errores**.
+- Sprints 1–6 y S08–S10 **cumplidos y verificados**; detalle con evidencia en
+  `docs/03-sprints.md`.
+- S10: **Auth y Firestore verificados en runtime** (idToken real, escritura 200, lectura 200,
+  sin token 403). **Storage fuera de alcance**: los proyectos Firebase nuevos exigen plan Blaze;
+  el código queda listo y desactivado por configuración.

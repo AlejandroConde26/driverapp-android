@@ -1,15 +1,17 @@
 # S10 — Integración con Firebase: autenticación, Firestore y Storage
 
-**Estado: Auth verificado en runtime · Firestore creado pendiente de reglas · Storage fuera de alcance por plan.**
+**Estado: cumplido — Auth y Firestore verificados en runtime; Storage fuera de alcance por plan.**
 
-- **Auth ✅ verificado**: `scripts/firebase_s10.sh verify` creó un usuario real en el proyecto
-  y recibió un **idToken de 974 caracteres**. La app `com.driverapp.repartidor` está registrada
-  (`appId 1:1009763251368:android:91893284a4d2a137453e9d`) y Email/Password está habilitado.
-- **Firestore 🟠**: la base de datos existe (una escritura sin reglas devuelve
-  `403 PERMISSION_DENIED`, no `404`). Falta publicar `firestore.rules`.
+- **Auth ✅ verificado**: `scripts/firebase_s10.sh verify` creó un usuario real y recibió un
+  **idToken de 974 caracteres**. La app `com.driverapp.repartidor` está registrada
+  (`appId 1:1009763251368:android:91893284a4d2a137453e9d`) con Email/Password habilitado.
+- **Firestore ✅ verificado**: escritura de `drivers/{uid}` → **HTTP 200**; lectura de vuelta
+  devuelve el documento con `online=true, lat=-12.1219, lng=-77.0297`; un request **sin token
+  devuelve 403**, es decir las reglas se aplican de verdad.
 - **Storage ⛔ fuera de alcance**: los proyectos Firebase nuevos exigen el **plan Blaze** para
-  crear un bucket (decisión del usuario: no activarlo). El código está implementado y el botón
-  del comprobante se oculta automáticamente cuando no hay bucket (`FirebaseConfig.isStorageEnabled()`).
+  crear un bucket (decisión: no activarlo). El enunciado del sprint admite "Firestore **o**
+  Storage". El código está implementado y el botón del comprobante se oculta cuando no hay bucket
+  (`FirebaseConfig.isStorageEnabled()`).
 - La app **no depende** de Firebase para funcionar: sin credenciales arranca en modo dev y usa
   sólo el backend REST.
 
@@ -91,16 +93,27 @@ Permisos: `<provider androidx.core.content.FileProvider>` con
 | Degradación sin credenciales | ✅ | `FirebaseConfig.isConfigured()` = `false` → no-op; la app opera con REST |
 | Claves fuera del repo | ✅ | `local.properties` en `.gitignore` + `local.properties.example` versionado |
 | **Auth en runtime** | ✅ **verificado** | `verify` → usuario creado + idToken de 974 caracteres |
-| **Firestore en runtime** | 🟠 pendiente | base creada; escritura devuelve `403 PERMISSION_DENIED` hasta publicar `firestore.rules` |
+| **Firestore en runtime** | ✅ **verificado** | escritura 200 · lectura 200 con los campos escritos · sin token 403 |
 | **Storage en runtime** | ⛔ fuera de alcance | exige plan Blaze en proyectos nuevos; el usuario decidió no activarlo |
 
-### Por qué no se pudo cerrar el runtime
+### Nota sobre `appId` y `package_name`
 
-El `mobilesdk_app_id` de Firebase está atado a un `package_name`. El facilitado
-(`1:1009763251368:android:22b0609fded44bd8453e9d`) pertenece a **`tv.cdlatam.setimer`**.
-Desde `com.driverapp.repartidor` Google puede responder
-`API_KEY_ANDROID_PACKAGE_BLOCKED` / `auth/invalid-api-key`. `FirebaseConfig.packageHint()`
-deja ese aviso en el código.
+El `mobilesdk_app_id` está atado a un `package_name`. El proyecto también tenía registrada la app
+`tv.cdlatam.setimer`; usar **su** appId desde `com.driverapp.repartidor` habría fallado con
+`auth/invalid-api-key` o `API_KEY_ANDROID_PACKAGE_BLOCKED`. Por eso la app propia se registró
+(`…:android:91893284a4d2a137453e9d`) y es la que está en `local.properties`. `FirebaseConfig.packageHint()`
+deja el aviso en el código por si alguien vuelve a copiar las claves equivocadas.
+
+### Storage: por qué no está activo
+
+Desde octubre de 2024 los proyectos Firebase nuevos requieren el **plan Blaze** (pago por uso) para
+crear un bucket de Cloud Storage. Con el plan gratuito la consola muestra esa exigencia y el bucket
+no existe (404). Se decidió no activar facturación, así que:
+
+- `FIREBASE_STORAGE_BUCKET` queda **vacío** → `isStorageEnabled()` es `false`;
+- el botón "Adjuntar comprobante" **no se muestra** en la pantalla del mapa;
+- el código (`StorageProofDataSource`, `ProofRepository`) sigue ahí y se activa solo rellenando esa
+  línea, sin tocar nada más.
 
 ### Pasos para cerrarlo
 
