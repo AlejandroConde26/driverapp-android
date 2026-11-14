@@ -10,6 +10,10 @@ import com.driverapp.repartidor.R
 import com.driverapp.repartidor.ui.main.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -24,6 +28,15 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         FcmTokenHolder.token = token
+        // FCM puede rotar el token en cualquier momento (reinstalación, limpieza de
+        // datos, restauración). Si no se envía al backend, la BD se queda con un
+        // token muerto y FCM responde NotRegistered: por eso se registra aquí.
+        val container = (application as? App)?.container ?: return
+        if (container.tokenStore.token().isNullOrBlank()) return
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            runCatching { container.authRepository.updateFcmToken(token) }
+                .onFailure { Log.w("DriverApp", "No se pudo registrar el token FCM nuevo: ${it.message}") }
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

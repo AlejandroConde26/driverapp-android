@@ -58,9 +58,18 @@ class MainActivity : AppCompatActivity() {
         // prohíbe arrancarlo desde Application.onCreate) y sólo con permiso concedido.
         lifecycleScope.launch {
             val prefs = runCatching { container.userPreferences.snapshot() }.getOrNull()
-                ?: return@launch
-            if (prefs.locationEnabled && container.locationRepository.hasPermission()) {
+            if (prefs != null && prefs.locationEnabled && container.locationRepository.hasPermission()) {
                 runCatching { LocationForegroundService.start(this@MainActivity) }
+            }
+
+            // Autorreparación del token FCM: si cambió (reinstalación, limpieza de datos,
+            // rotación), se vuelve a registrar al volver a la app. Sin esto la BD puede
+            // quedarse con un token muerto y FCM responde NotRegistered.
+            if (!container.tokenStore.token().isNullOrBlank()) {
+                runCatching {
+                    val token = container.firebaseMessaging.fetchToken()
+                    if (!token.isNullOrBlank()) container.authRepository.updateFcmToken(token)
+                }
             }
         }
     }

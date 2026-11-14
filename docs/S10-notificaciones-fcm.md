@@ -77,6 +77,20 @@ Verificado: pedido #30 creado con `POST /admin/orders` → 200; el repartidor ve
 FCM se intenta en el acto y solo falla (`SenderId mismatch`) mientras el teléfono
 tenga instalado el APK del proyecto Firebase anterior.
 
+## Rotación del token FCM (defecto corregido)
+
+`onNewToken` solo guardaba el token en memoria: si FCM rotaba el token
+(reinstalación, limpieza de datos, restauración), la base de datos se quedaba con
+el anterior y el envío respondía **`NotRegistered`**. Ahora:
+
+| Punto | Comportamiento |
+|---|---|
+| `DriverFirebaseMessagingService.onNewToken` | Además de guardarlo en memoria, lo registra en el backend con `PUT /users/me/fcm-token` (corrutina en IO, solo si hay sesión) |
+| `MainActivity.onResume` | Autorreparación: pide el token actual a `FirebaseMessaging` y lo reenvía al backend si hay sesión |
+
+Así el backend siempre tiene un token vivo, incluso si el usuario nunca vuelve a
+iniciar sesión.
+
 ## Verificación
 
 | Comprobación | Resultado |
