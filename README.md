@@ -85,7 +85,8 @@ git clone <repo> && cd driverapp-android-main
 | `docs/11-permisos-y-privacidad.md` | Permisos, datos tratados, Términos y Política de Privacidad |
 | `docs/12-google-maps-y-fcm-setup.md` | Restricción de la API key y service account de Firebase |
 | `docs/13-metodologia-desarrollo.md` | **Metodología, EDT, cronograma y evidencias** |
-| `docs/14-geolocalizacion-permisos-privacidad.md` | **Estado de los 6 ejes: Maps, permisos, privacidad, persistencia, REST y Firebase** |
+| `docs/14-geolocalizacion-permisos-privacidad.md` | Estado de los 6 ejes: Maps, permisos, privacidad, persistencia, REST y Firebase |
+| **`docs/15-informe-integrado.md`** | **Informe consolidado: los 6 ejes juntos, permisos completos, TyC y Política, y evidencia de verificación** |
 | `docs/auth-backend.md` | Contrato de autenticación propia (bcrypt + JWT) y su verificación |
 
 ## Estado
