@@ -11,3 +11,7 @@ FIREBASE_APP_ID=
 FIREBASE_PROJECT_ID=
 ## project_info.project_number. FCM no emite token sin el Sender ID.
 FIREBASE_SENDER_ID=
+
+## Google Maps SDK for Android. Restringir la key en Google Cloud por
+## package (com.driverapp.repartidor) + SHA-1. Sin key, el mapa no carga.
+MAPS_API_KEY=

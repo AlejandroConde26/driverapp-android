@@ -12,7 +12,6 @@ import com.driverapp.repartidor.di.AppContainer
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import kotlinx.coroutines.runBlocking
-import org.osmdroid.config.Configuration
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -39,7 +38,6 @@ class App : Application() {
 
         initFirebase()
         createNotificationChannels()
-        initOsmdroid()
         installCrashLogger()
 
         // El servicio de ubicación NO se arranca aquí: en Android 12+
@@ -86,25 +84,6 @@ class App : Application() {
                 )
             }.onFailure { Log.e(TAG, "No se pudo inicializar Firebase: ${it.message}") }
         }
-    }
-
-    /**
-     * osmdroid necesita `Configuration.load()` **antes** de construir el MapView.
-     * Sin ella, `osmdroidBasePath` y la caché de teselas quedan sin definir y el
-     * mapa se queda en blanco (y el proveedor de teselas puede lanzar al escribir
-     * el fichero). Además el User-Agent por defecto lo bloquean los servidores de
-     * teselas, así que se identifica la app.
-     */
-    private fun initOsmdroid() {
-        runCatching {
-            val config = Configuration.getInstance()
-            config.load(this, getSharedPreferences("osmdroid", MODE_PRIVATE))
-            config.userAgentValue = "$packageName/${BuildConfig.VERSION_NAME}"
-            val base = File(filesDir, "osmdroid")
-            config.osmdroidBasePath = base
-            config.osmdroidTileCache = File(base, "tiles")
-            base.mkdirs()
-        }.onFailure { Log.e(TAG, "No se pudo configurar osmdroid: ${it.message}", it) }
     }
 
     /**

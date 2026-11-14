@@ -46,7 +46,7 @@ import java.util.Locale
 fun ProfileScreen(
     vm: ProfileViewModel,
     onLogout: () -> Unit,
-    onLanguageChanged: () -> Unit,
+    onLanguageChanged: (String) -> Unit,
     onLocationChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -246,12 +246,12 @@ fun ProfileScreen(
                     ActionRow(label = stringResource(R.string.language_es)) {
                         vm.setLanguage(UserPreferences.LANG_ES)
                         languageDialog = false
-                        onLanguageChanged()
+                        onLanguageChanged(UserPreferences.LANG_ES)
                     }
                     ActionRow(label = stringResource(R.string.language_en)) {
                         vm.setLanguage(UserPreferences.LANG_EN)
                         languageDialog = false
-                        onLanguageChanged()
+                        onLanguageChanged(UserPreferences.LANG_EN)
                     }
                 }
             },

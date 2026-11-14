@@ -1,8 +1,8 @@
 package com.driverapp.repartidor.ui.main
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.driverapp.repartidor.App
 import com.driverapp.repartidor.data.hardware.gps.LocationForegroundService
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
  * ubicación ya NO se detiene aquí: lo gestiona `LocationForegroundService`,
  * que sobrevive a la Activity (Sprint 3).
  */
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val container get() = (application as App).container
 

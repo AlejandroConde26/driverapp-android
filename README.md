@@ -84,7 +84,7 @@ git clone <repo> && cd driverapp-android-main
 
 ## Estado
 
-- Suite: **52 tests, 0 fallos** · `lintDebug`: **0 errores**.
+- Suite: **56 tests, 0 fallos** · `lintDebug`: **0 errores**.
 - Sprints 1–6 y S08–S10 **cumplidos y verificados**; detalle con evidencia en
   `docs/03-sprints.md`.
 - **Autenticación:** la emite el backend (correo + contraseña → JWT propio). Contrato y

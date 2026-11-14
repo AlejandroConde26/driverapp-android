@@ -178,7 +178,10 @@ fun AppNav(container: AppContainer) {
                                 launchSingleTop = true
                             }
                         },
-                        onLanguageChanged = {
+                        onLanguageChanged = { code ->
+                            // Aplicar el idioma antes de recrear: la preferencia sola no
+                            // cambia los recursos si nadie llama a setApplicationLocales.
+                            App.applyLanguage(code)
                             (context as? android.app.Activity)?.recreate()
                         },
                         onLocationChanged = { enabled ->

@@ -11,15 +11,19 @@ Estado: **corregido en el APK de depuración**, con build y suite en verde
 | 4 | Desactivar la ubicación en tiempo real cierra la app | `LocationForegroundService.stop()` enviaba un intent `ACTION_STOP` con `startService()`, es decir, **arrancaba el servicio para pedirle que se parara**: pasaba por `onStartCommand` y podía romper el contrato de `startForegroundService`. | `stop()` usa `context.stopService()` (no ejecuta `onStartCommand`); `stopTracking()` llama a `stopForeground(STOP_FOREGROUND_REMOVE)` para no dejar la notificación colgada. |
 | 5 | Cerrar sesión cierra la app | `nav.navigate(LOGIN) { popUpTo(0) { inclusive = true } }` desmontaba el grafo entero mientras el `NavHost` seguía componiendo. | `popUpTo(nav.graph.id) { inclusive = true }` + `launchSingleTop = true`. |
 | 6 | El icono del login no aparece (o sale un bloque) | `Icon(painter = app_logo, tint = onBackground)`: el `tint` pinta **toda** la imagen de un color. El asset es un PNG 192×192 con fondo negro y pin blanco, así que se veía una mancha lisa. | `Image(...)` sin `tint`, recortado con `RoundedCornerShape(22.dp)` y borde `outlineVariant` para que el cuadrado negro no se pierda sobre fondo oscuro. |
+| 7 | El idioma inglés no se aplicaba en toda la app | `MainActivity` era `ComponentActivity` y `AppCompatDelegate.setApplicationLocales` **sólo actúa con AppCompat**; además al cambiar de idioma nadie llamaba a `applyLanguage`, solo se recreaba la Activity. Las cadenas ya estaban 166/166 traducidas. | `MainActivity : AppCompatActivity()` y `onLanguageChanged(code)` aplica el idioma antes de recrear. Añadido `LocalizationTest` (4 casos) que falla si falta una clave, si cambian los argumentos de formato o si queda español en `values-en`. |
 
 ## Verificación
 
 | Comprobación | Resultado |
 |---|---|
 | `./gradlew :app:assembleDebug` | BUILD SUCCESSFUL · APK 17,0 MB |
-| `./gradlew :app:testDebugUnitTest` | 52 tests, 0 fallos |
+| `./gradlew :app:testDebugUnitTest` | **56 tests, 0 fallos** (incluye `LocalizationTest`) |
 | `./gradlew :app:lintDebug` | 0 errores |
 | `GET /orders/available` con JWT | devuelve `client_phone` en cada pedido (`+51 999 111 2NN`) |
+| APK: referencias a osmdroid | **0** (migrado a `play-services-maps`, 632 referencias) |
+| Manifest fusionado | `com.google.android.geo.API_KEY` presente |
+| Cadenas es/en | 166/166 claves iguales, mismos argumentos de formato, 0 español en `values-en` |
 
 ## Registro de crashes en el teléfono
 

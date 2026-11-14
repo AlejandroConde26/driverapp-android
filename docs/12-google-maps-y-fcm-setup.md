@@ -1,7 +1,8 @@
 # Google Maps y FCM — datos y paso a paso de configuración
 
-Documento de trámites: qué poner en Google Cloud / Firebase y qué me tienes que
-entregar. El código del mapa todavía **no** está migrado (hoy la app usa osmdroid).
+**Estado: mapa migrado a Google Maps (SDK Android).** La app ya no usa osmdroid.
+Firebase: credenciales instaladas en el servidor, pero **el push no llega todavía**
+porque el proyecto del service account no es el de la app (ver §3.1).
 
 ## 1. Datos de la app para restringir la API key
 
@@ -56,11 +57,29 @@ Si se filtra, se revoca en la misma pantalla («Administrar claves») y se gener
 Además, en Google Cloud debe estar habilitada **«Firebase Cloud Messaging API»**
 (Cloud Messaging V1); normalmente ya lo está al crear el proyecto.
 
-## 4. Lo que falta en código (no incluido en esta entrega)
+## 4. Estado del código (hecho)
 
-| Tarea | Detalle |
+| Tarea | Estado |
 |---|---|
-| Migrar el mapa | `TrackingScreen`: `MapView` (osmdroid) → `GoogleMap` de `maps-compose`; marcadores de restaurante, cliente y repartidor; cámara y ciclo de vida |
-| Key en el build | `MAPS_API_KEY` en `local.properties` → `manifestPlaceholders` → `com.google.android.geo.API_KEY` |
-| Dependencias | `com.google.maps.android:maps-compose` + `play-services-maps`; quitar `osmdroid` |
-| Degradación | Si falta la key o Google Play Services, mostrar un aviso en vez de un mapa vacío |
+| Mapa | `TrackingScreen` usa `MapView` de `play-services-maps` con `getMapAsync`; marcadores de restaurante, cliente y repartidor; cámara centrada una sola vez |
+| Key en el build | `MAPS_API_KEY` en `local.properties` → `manifestPlaceholders` → `com.google.android.geo.API_KEY` (verificado en el manifest fusionado) |
+| Dependencias | `com.google.android.gms:play-services-maps:18.2.0`; osmdroid eliminado (0 referencias en el APK) |
+| Degradación | Sin Google Play Services se muestra `map_play_services_missing` en vez de un mapa vacío |
+| Ciclo de vida | `onCreate`/`onResume`/`onPause`/`onDestroy` conectados al lifecycle de Compose |
+
+## 5. Firebase: el proyecto no coincide (bloqueante)
+
+| Dato | Valor |
+|---|---|
+| Proyecto del **service account** (`proyectorepartidor-87835`) | credenciales válidas: `firebase-admin` inicializa y la API de FCM responde |
+| Apps Android registradas en ese proyecto | **ninguna** |
+| Proyecto de la **app** (`FIREBASE_SENDER_ID`) | `1009763251368` (`camarasproyectocdlatam`) |
+
+Un token FCM solo es válido para el proyecto que lo emitió: si el backend envía con
+credenciales de otro proyecto, FCM lo rechaza (`SENDER_ID_MISMATCH`). Hay dos salidas:
+
+1. **Recomendada:** registrar `com.driverapp.repartidor` en `proyectorepartidor-87835`
+   (Añadir app → Android), descargar su `google-services.json` y pasarme la `apiKey`,
+   el `mobilesdk_app_id` y el `project_number`. Cambio de 3 valores en `local.properties`.
+2. Generar el service account en `camarasproyectocdlatam` y reemplazar el JSON del
+   servidor (no requiere tocar la app).

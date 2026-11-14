@@ -40,6 +40,9 @@ android {
         buildConfigField("String", "FIREBASE_PROJECT_ID", secret("FIREBASE_PROJECT_ID"))
         // project_number: FCM no emite token sin él.
         buildConfigField("String", "FIREBASE_SENDER_ID", secret("FIREBASE_SENDER_ID"))
+
+        // Google Maps: la key va al manifest (com.google.android.geo.API_KEY).
+        manifestPlaceholders["MAPS_API_KEY"] = localProps.getProperty("MAPS_API_KEY") ?: ""
     }
 
     buildTypes {
@@ -121,7 +124,8 @@ dependencies {
     // Sólo FCM: la autenticación la hace el backend, no Firebase.
     implementation("com.google.firebase:firebase-messaging")
 
-    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    // Mapas: Google Maps SDK for Android (reemplaza a osmdroid).
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
 
     implementation("androidx.security:security-crypto:1.0.0")
     implementation("com.google.code.gson:gson:2.11.0")
