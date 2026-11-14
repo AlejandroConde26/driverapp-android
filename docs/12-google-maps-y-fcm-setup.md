@@ -67,19 +67,45 @@ Además, en Google Cloud debe estar habilitada **«Firebase Cloud Messaging API�
 | Degradación | Sin Google Play Services se muestra `map_play_services_missing` en vez de un mapa vacío |
 | Ciclo de vida | `onCreate`/`onResume`/`onPause`/`onDestroy` conectados al lifecycle de Compose |
 
-## 5. Firebase: el proyecto no coincide (bloqueante)
+## 5. Firebase: proyecto alineado (resuelto)
+
+La app y el service account del backend pertenecen ahora **al mismo proyecto**:
 
 | Dato | Valor |
 |---|---|
-| Proyecto del **service account** (`proyectorepartidor-87835`) | credenciales válidas: `firebase-admin` inicializa y la API de FCM responde |
-| Apps Android registradas en ese proyecto | **ninguna** |
-| Proyecto de la **app** (`FIREBASE_SENDER_ID`) | `1009763251368` (`camarasproyectocdlatam`) |
+| Proyecto | `proyectorepartidor-87835` |
+| Cuenta de la consola | `alejandro.conde.contacto@gmail.com` |
+| Paquete registrado | `com.driverapp.repartidor` |
+| `mobilesdk_app_id` | `1:1051770700715:android:81378759d7e77d408c08ee` |
+| Sender ID (project_number) | `1051770700715` |
+| Service account del backend | `firebase-adminsdk-fbsvc@proyectorepartidor-87835.iam.gserviceaccount.com` |
 
-Un token FCM solo es válido para el proyecto que lo emitió: si el backend envía con
-credenciales de otro proyecto, FCM lo rechaza (`SENDER_ID_MISMATCH`). Hay dos salidas:
+Los tres valores viajan en `local.properties` (nunca en el repositorio) y llegan al
+build como `BuildConfig.FIREBASE_API_KEY`, `FIREBASE_APP_ID` y `FIREBASE_SENDER_ID`;
+el `project_id` del service account coincide con el de la app.
 
-1. **Recomendada:** registrar `com.driverapp.repartidor` en `proyectorepartidor-87835`
-   (Añadir app → Android), descargar su `google-services.json` y pasarme la `apiKey`,
-   el `mobilesdk_app_id` y el `project_number`. Cambio de 3 valores en `local.properties`.
-2. Generar el service account en `camarasproyectocdlatam` y reemplazar el JSON del
-   servidor (no requiere tocar la app).
+El archivo `google-services.json` **no se versiona** (contiene la API key y lo exige el
+plugin de Google): del archivo se copian los tres valores a `local.properties` y la app
+inicializa Firebase con `FirebaseOptions` manual, sin depender del plugin.
+
+### 5.1 Evidencia del problema que había
+
+Antes de alinear, con el token que la app registró siendo del proyecto anterior:
+
+```text
+users.fcm_token (usuario 2) = dHxGS3TaRpuocoHmA6… (142 chars)
+envío con credenciales de proyectorepartidor-87835 →
+  SenderIdMismatchError: SenderId mismatch
+```
+
+Ese token se puso a `NULL` en la base de datos: era inservible y el nuevo se registra
+solo al abrir la app con el APK actualizado (`PUT /users/me/fcm-token`).
+
+### 5.2 Verificación del circuito
+
+| Paso | Resultado |
+|---|---|
+| `firebase-admin` inicializa con el JSON | OK |
+| API de FCM acepta la petición | error de token, no de credenciales |
+| `POST /api/v1/notifications/send` (admin) | **HTTP 200**, notificación persistida (id 23) |
+| Entrega al teléfono | pendiente: requiere el APK nuevo instalado (el token debe emitirse en el proyecto nuevo) |

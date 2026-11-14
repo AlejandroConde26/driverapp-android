@@ -16,7 +16,7 @@ backend en producción, no sobre la intención del diseño.
 | **Privacidad / Términos y Condiciones** | 📄 Documentado (no implementado en la app, por decisión del cliente) | `docs/11` §3 y §4 (texto base Ley 29733) | Pantalla y registro de aceptación si se publica |
 | **Persistencia local** | ✅ Implementado | Room (5 tablas + `room_master_table`), DataStore, cifrado, cola WorkManager | — |
 | **REST** | ✅ Implementado | 33 rutas / 39 operaciones del backend, Retrofit, JWT, manejo de errores | — |
-| **Firebase** | ⚠️ Parcial | FCM en la app (token, canal, servicio, permiso runtime); backend con credenciales | **El proyecto del service account no coincide con el de la app** |
+| **Firebase** | ✅ Configurado | FCM en la app (token, canal, servicio, permiso runtime); backend con service account del **mismo proyecto** (`proyectorepartidor-87835`) | Entrega al teléfono: falta instalar el APK nuevo (el token debe emitirse en el proyecto nuevo) |
 | **Geolocalización del dispositivo** | ✅ Implementado | Servicio en primer plano tipo `location`, GPS + red, reporte cada 30 s | — |
 
 ---
@@ -160,14 +160,12 @@ del proyecto es de **56 tests, 0 fallos**.
 |---|---|
 | SDK | `firebase-messaging` (único componente de Firebase; Auth, Firestore y Storage se retiraron) |
 | Inicialización | `FirebaseOptions` manual con **`setGcmSenderId`** (sin Sender ID no se emite token) |
+| Proyecto | **`proyectorepartidor-87835`** — el mismo del service account del backend |
 | Token | Se registra en el backend con `PUT /users/me/fcm-token` |
 | Recepción | `DriverFirebaseMessagingService` con canal `orders`, respeta preferencias de aviso y sonido y comprueba `POST_NOTIFICATIONS` |
-| Backend | Service account instalada en `/root/driverapp/backend/firebase-service-account.json` (permisos 600) y `FIREBASE_CREDENTIALS_PATH` en el `.env` |
-| **Bloqueante** | El service account pertenece a **`proyectorepartidor-87835`** (sin apps Android registradas) mientras la app emite tokens del proyecto **`1009763251368`**. Un token FCM solo es válido para su proyecto: el envío sería rechazado (`SENDER_ID_MISMATCH`) |
-
-**Salidas:** registrar `com.driverapp.repartidor` en `proyectorepartidor-87835` y cambiar
-`apiKey`, `appId` y `senderId` en `local.properties`; o generar la service account en
-`camarasproyectocdlatam`. Detalle en `docs/12-google-maps-y-fcm-setup.md` §5.
+| Backend | Service account en `/root/driverapp/backend/firebase-service-account.json` (permisos 600) y `FIREBASE_CREDENTIALS_PATH` en el `.env` |
+| Envío | `POST /api/v1/notifications/send` → **HTTP 200**, notificación persistida y `messaging.send()` con credenciales válidas |
+| Pendiente | La entrega al teléfono se confirma al instalar el APK alineado: el token anterior era de otro proyecto y respondía `SenderIdMismatchError` (se puso a `NULL` en la BD) |
 
 ---
 
@@ -190,7 +188,7 @@ del proyecto es de **56 tests, 0 fallos**.
 | # | Pendiente | Impacto | Quién |
 |---|---|---|---|
 | 1 | Restringir la API key de Google Maps (package + SHA-1) y habilitar *Maps SDK for Android* | Sin esto el mapa sale en blanco | Cliente (consola) |
-| 2 | Alinear el proyecto de Firebase con la app | Sin esto no llega ningún push | Cliente (consola) |
+| 2 | ~~Alinear el proyecto de Firebase con la app~~ | **Resuelto**: app y service account en `proyectorepartidor-87835`; falta instalar el APK alineado para confirmar la entrega | Cliente (instalar APK) |
 | 3 | TLS para el backend | Requisito para publicar en Play | Cliente / infraestructura |
 | 4 | Pantalla de Términos y registro de aceptación | Hoy es solo documentación | Cliente (decisión) |
 | 5 | Acceso a Ajustes cuando el permiso se deniega para siempre | UX de permisos | Desarrollo |

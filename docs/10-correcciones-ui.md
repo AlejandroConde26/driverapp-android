@@ -1,7 +1,7 @@
 # Correcciones de UI, mapa y sesión
 
 Estado: **corregido en el APK de depuración**, con build y suite en verde
-(52 tests, 0 fallos, `lintDebug` 0 errores).
+(56 tests, 0 fallos, `lintDebug` 0 errores).
 
 | # | Síntoma reportado | Causa raíz | Corrección |
 |---|---|---|---|

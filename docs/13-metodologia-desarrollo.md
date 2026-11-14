@@ -150,7 +150,7 @@ descartar el trabajo previo.
 | Persistencia local (Room + DataStore + cola offline) | 01/11 | ✅ 6 tests de DAO |
 | Google Maps SDK integrado | 14/11 | ✅ key en manifest fusionado |
 | Internacionalización es/en | 14/11 | ✅ 166/166 cadenas, 4 tests |
-| Push FCM extremo a extremo | — | ⚠️ bloqueado por proyecto Firebase |
+| Push FCM extremo a extremo | 14/11 | ✅ app y backend en el mismo proyecto (`proyectorepartidor-87835`); `senderId` alineado y `SenderIdMismatch` resuelto |
 
 ## 6. Aplicación de las 5 etapas de la solución técnica
 
@@ -208,7 +208,7 @@ adb shell screencap -p /sdcard/01-login.png && adb pull /sdcard/01-login.png doc
 | Sesión firmada | JWT HS256 con `exp` de 7 días; cualquier token manipulado devuelve 401 | 16 casos HTTP verificados |
 | Sesión cifrada en el dispositivo | `EncryptedSharedPreferences` (AES256-SIV/GCM); si el Keystore falla, cae a memoria y **no** escribe en claro | `TokenDataStore` |
 | Copias de seguridad desactivadas | `android:allowBackup="false"` | `AndroidManifest.xml` |
-| Secretos fuera del repositorio | `local.properties` ignorado; verificado: 0 claves en el árbol remoto | `git grep AIzaSy` → vacío |
+| Secretos fuera del repositorio | `local.properties` ignorado; verificado con una búsqueda del prefijo de las claves de Google en el árbol remoto → 0 resultados (la búsqueda solo devuelve este mismo documento si se escribe el prefijo literal) | `docs/12` §2 |
 | Permisos mínimos y justificados | 7 permisos, cada uno con propósito documentado; 8 descartados con motivo | `docs/11-permisos-y-privacidad.md` |
 | Trazabilidad del dato personal | Tabla de datos tratados (origen, finalidad, retención, destinatario) | `docs/11` §2 |
 | Términos y Política de Privacidad | Texto base redactado (Ley 29733) | `docs/11` §3 y §4 |
@@ -237,5 +237,5 @@ tokens ni claves: los valores sensibles se referencian por nombre.
 | El contrato del backend no coincidía con el supuesto | Alto | Se leyó `openapi.json` y se reescribió auth y modelo de pedidos en el sprint siguiente |
 | Emulador inestable (memoria del host) | Medio | Verificación por build + tests + HTTP real, y registro de crash en el teléfono |
 | Sin Play Console ni QA | Medio | Pruebas automatizadas como puerta de calidad (56) y `lintDebug` obligatorio |
-| Proyecto Firebase distinto al de la app | Medio | Detectado con el service account; documentado como bloqueante con dos salidas |
+| Proyecto Firebase distinto al de la app | Medio | Se detectó consultando el service account (`SenderIdMismatchError`) y se resolvió registrando la app en `proyectorepartidor-87835` y alineando `senderId` |
 | Cambio de alcance a mitad de proyecto | Alto | Sprint de corrección dedicado y reescritura de la documentación afectada (no se dejó convivir la vieja) |

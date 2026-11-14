@@ -29,7 +29,7 @@ backend (correo + contraseña → JWT propio, ver `docs/auth-backend.md`), y Fir
 retiraron porque duplicaban la fuente de verdad y exigían el plan Blaze. Verificado contra el
 servidor real: login 200 / credencial incorrecta 401 / token viejo 401 / sesión 200.
 
-Resultado de la suite: **52 tests, 0 fallos** (`./gradlew :app:testDebugUnitTest`).
+Resultado de la suite: **56 tests, 0 fallos** (`./gradlew :app:testDebugUnitTest`).
 
 ---
 
@@ -187,8 +187,10 @@ Detalle en `docs/S10-notificaciones-fcm.md`. Autenticación en `docs/auth-backen
 - [x] Notificación con canal propio, preferencias de sonido/avisos y permiso `POST_NOTIFICATIONS`.
 - [x] Retirados `FirebaseAuthDataSource`, `FirestoreDriverDataSource`, `StorageProofDataSource`,
       `ProofRepository(Impl)` y el botón del comprobante.
-- [ ] **Push extremo a extremo:** el backend todavía no tiene credenciales de servicio,
-      así que hoy registra el mensaje y no lo envía (`services/fcm.py`).
+- [ ] **Push extremo a extremo:** el backend ya tiene service account del mismo proyecto
+      (`proyectorepartidor-87835`) y `POST /notifications/send` responde 200; la entrega al
+      teléfono se confirma al instalar el APK alineado (el token anterior era de otro
+      proyecto y devolvía `SenderIdMismatchError`).
 
 ---
 

@@ -63,15 +63,16 @@ del `LocationForegroundService`.
 | Comprobación | Resultado |
 |---|---|
 | `./gradlew :app:assembleDebug` | BUILD SUCCESSFUL |
-| `./gradlew :app:testDebugUnitTest` | 52 tests, 0 fallos |
+| `./gradlew :app:testDebugUnitTest` | 56 tests, 0 fallos |
 | `./gradlew :app:lintDebug` | 0 errores |
 | Referencias residuales a `FirebaseAuthDataSource`, `Firestore`, `isStorageEnabled`, `id_token` | 0 en `app/src` |
 
 ## Pendiente (requiere acción fuera del repo)
 
-1. **Backend**: `/api/v1/notifications/send` tiene que enviar de verdad por FCM
-   HTTP v1 con una service account (`FIREBASE_CREDENTIALS_PATH` está vacío en el
-   `.env` del servidor, así que hoy el push se registra y no sale). Mientras no
-   haya credenciales, `services/fcm.py` sólo escribe un log.
-2. **Prueba en dispositivo**: el AVD de este equipo no es estable (memoria), así
-   que la recepción real del push se valida en un teléfono físico.
+1. **Entrega en el dispositivo**: el backend ya envía con credenciales del proyecto
+   `proyectorepartidor-87835` (el mismo de la app) y `POST /notifications/send` devuelve
+   200. Falta instalar el APK alineado para que el móvil registre un token de ese
+   proyecto; el anterior pertenecía al proyecto viejo y respondía
+   `SenderIdMismatchError` (se puso a `NULL` en la BD).
+2. **Prueba en dispositivo**: el AVD de este equipo no es estable (memoria), así que la
+   recepción real del push se valida en un teléfono físico.

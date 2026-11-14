@@ -95,7 +95,8 @@ git clone <repo> && cd driverapp-android-main
   `docs/03-sprints.md`.
 - **Autenticación:** la emite el backend (correo + contraseña → JWT propio). Contrato y
   verificación en `docs/auth-backend.md`.
-- **Firebase:** sólo notificaciones push (FCM). Sin Auth, sin Firestore, sin Storage;
+- **Firebase:** sólo notificaciones push (FCM), en el proyecto `proyectorepartidor-87835`
+  — el mismo del service account del backend. Sin Auth, sin Firestore, sin Storage;
   detalle en `docs/S10-notificaciones-fcm.md`.
 - **Correcciones de UI, mapa y sesión** (modo oscuro, mapa, teléfono del cliente,
   parada de ubicación, logout, logo): `docs/10-correcciones-ui.md`.
