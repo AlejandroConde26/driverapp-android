@@ -30,9 +30,9 @@ backend en producción, no sobre la intención del diseño.
 | SDK | `com.google.android.gms:play-services-maps:18.2.0` (sustituye a osmdroid) |
 | Clave | `MAPS_API_KEY` en `local.properties` (ignorado por git) → `manifestPlaceholders` → `com.google.android.geo.API_KEY` |
 | Vista | `MapView` dentro de `AndroidView`, con `getMapAsync` para obtener el `GoogleMap` |
-| Marcadores | Restaurante (origen), cliente (destino) y repartidor (posición en vivo) |
-| Mi ubicación | Capa nativa `isMyLocationEnabled` (punto azul en tiempo real) con permiso; marcador de respaldo si no lo hay. Sin pedido activo, la cámara se centra en el repartidor |
-| Ruta | Botón «Cómo llegar en Google Maps»: `google.navigation:` → `geo:` → Maps web |
+| Marcadores | Restaurante azul, cliente rojo, pedidos disponibles naranja (tocables: abren aceptar/rechazar) y repartidor verde si no hay punto azul. Encuadre con `newLatLngBounds` |
+| Mi ubicación | Capa nativa `isMyLocationEnabled` (punto azul en tiempo real) con permiso; marcador de respaldo si no lo hay. Sin pedido activo, la cámara se centra en el repartidor. El permiso se solicita **automáticamente al primer arranque con sesión** y solo una vez (`location_asked` en DataStore) |
+| Ruta | Botón dinámico: «Cómo llegar al restaurante en Google Maps» mientras el pedido está `ACEPTADO`, «Cómo llegar al cliente en Google Maps» desde `EN_CAMINO`. Cadena `google.navigation:` → `geo:` → Maps web |
 | Cámara | Centrada una sola vez (restaurante → repartidor → destino) y botón para volver a centrar en la posición propia |
 | Ciclo de vida | `onCreate`, `onResume`, `onPause`, `onDestroy` conectados al `LifecycleOwner` de Compose |
 | Degradación | Sin Google Play Services se muestra un aviso (`map_play_services_missing`) en lugar de un mapa vacío |

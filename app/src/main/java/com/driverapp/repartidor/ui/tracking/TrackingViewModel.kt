@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.driverapp.repartidor.R
 import com.driverapp.repartidor.domain.model.Pedido
 import com.driverapp.repartidor.domain.repository.PedidoRepository
+import com.driverapp.repartidor.domain.usecase.AceptarPedidoUseCase
 import com.driverapp.repartidor.domain.usecase.MarcarEnCaminoUseCase
 import com.driverapp.repartidor.domain.usecase.MarcarPedidoEntregadoUseCase
 import com.driverapp.repartidor.domain.usecase.ObtenerHistorialUseCase
 import com.driverapp.repartidor.domain.usecase.ObtenerMisPedidosUseCase
+import com.driverapp.repartidor.domain.usecase.RechazarPedidoUseCase
 import com.driverapp.repartidor.ui.common.ErrorState
 import com.driverapp.repartidor.ui.common.UiMessenger
 import com.driverapp.repartidor.ui.common.toErrorState
@@ -25,6 +27,8 @@ class TrackingViewModel(
     private val historial: ObtenerHistorialUseCase,
     private val enCamino: MarcarEnCaminoUseCase,
     private val entregar: MarcarPedidoEntregadoUseCase,
+    private val aceptar: AceptarPedidoUseCase,
+    private val rechazar: RechazarPedidoUseCase,
     private val messenger: UiMessenger,
     mapFocus: StateFlow<Int?> = MutableStateFlow(null)
 ) : ViewModel() {
@@ -64,6 +68,41 @@ class TrackingViewModel(
 
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy
+
+    /** Aceptar un pedido directo desde el marcador del mapa. */
+    fun accept(order: Pedido, onDone: (Pedido) -> Unit = {}) {
+        viewModelScope.launch {
+            _busy.value = true
+            try {
+                val updated = aceptar(order.id.toLong())
+                refreshActive()
+                messenger.show(R.string.msg_order_accepted)
+                onDone(updated)
+            } catch (e: Throwable) {
+                _error.value = e.toErrorState()
+                messenger.showRaw(e.message ?: "Error")
+            } finally {
+                _busy.value = false
+            }
+        }
+    }
+
+    /** Rechazar un pedido desde el marcador del mapa (no se vuelve a ofrecer). */
+    fun reject(order: Pedido) {
+        viewModelScope.launch {
+            _busy.value = true
+            try {
+                rechazar(order.id.toLong())
+                refreshActive()
+                messenger.show(R.string.msg_order_rejected)
+            } catch (e: Throwable) {
+                _error.value = e.toErrorState()
+                messenger.showRaw(e.message ?: "Error")
+            } finally {
+                _busy.value = false
+            }
+        }
+    }
 
     fun refreshActive() {
         viewModelScope.launch {

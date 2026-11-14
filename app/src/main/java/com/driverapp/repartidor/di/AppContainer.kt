@@ -133,7 +133,7 @@ class AppContainer(context: Context) {
     fun trackingViewModelFactory() = ViewModelFactory {
         TrackingViewModel(
             pedidoRepository, misPedidos, historialPedidos,
-            marcarEnCamino, marcarEntregado, messenger, mapFocus
+            marcarEnCamino, marcarEntregado, aceptarPedido, rechazarPedido, messenger, mapFocus
         )
     }
 

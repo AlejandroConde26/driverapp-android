@@ -19,12 +19,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -95,6 +99,8 @@ fun TrackingScreen(
     var centeredOnce by remember { mutableStateOf(false) }
     var recenter by remember { mutableStateOf(0) }
     var fitKey by remember { mutableStateOf("") }
+    // Pedido disponible tocado en el mapa: su detalle se muestra bajo el mapa.
+    var selectedAvailable by remember { mutableStateOf<Pedido?>(null) }
 
     val hasLocationPermission = ContextCompat.checkSelfPermission(
         context,
@@ -181,6 +187,20 @@ fun TrackingScreen(
                         }
                         map.clear()
 
+                        // Tocar el marcador de un pedido disponible muestra su detalle
+                        // debajo del mapa, con aceptar y rechazar.
+                        map.setOnMarkerClickListener { marker ->
+                            val id = (marker.tag as? String)?.toIntOrNull()
+                            val pedido = id?.let { pid -> disponibles.firstOrNull { it.id == pid } }
+                            if (pedido != null) {
+                                selectedAvailable = pedido
+                                true
+                            } else {
+                                marker.showInfoWindow()
+                                false
+                            }
+                        }
+
                         val currentOrder = order
                         val currentLocation = location
                         val puntos = mutableListOf<LatLng>()
@@ -239,7 +259,7 @@ fun TrackingScreen(
                                         context.getString(R.string.map_marker_available, pedido.id)
                                     )
                                     .snippet(pedido.clientAddress)
-                            )
+                            )?.tag = pedido.id.toString()
                             // Solo se encuadran si no hay reparto en curso: si lo hay, la
                             // ruta manda y no conviene alejar la cámara.
                             if (currentOrder == null) puntos += punto
@@ -334,8 +354,22 @@ fun TrackingScreen(
         }
 
         Column(Modifier.padding(16.dp)) {
+            val selected = selectedAvailable
             val current = order
-            if (current == null) {
+            if (selected != null) {
+                AvailableOrderCard(
+                    pedido = selected,
+                    onAccept = { vm.accept(selected) { selectedAvailable = null } },
+                    onReject = {
+                        vm.reject(selected)
+                        selectedAvailable = null
+                    },
+                    onRoute = {
+                        openRoute(context, selected.destLat, selected.destLng, selected.clientName, vm)
+                    },
+                    onDismiss = { selectedAvailable = null }
+                )
+            } else if (current == null) {
                 Text(
                     stringResource(R.string.map_no_active_order),
                     style = MaterialTheme.typography.titleMedium
@@ -379,14 +413,28 @@ fun TrackingScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                 }
+                // Mientras el pedido no haya salido del restaurante la ruta útil es
+                // ir a recogerlo; después, al cliente.
+                val irAlRestaurante = current.estado == EstadoPedido.ACEPTADO &&
+                    current.restaurant != null
+                val restaurante = current.restaurant
                 OutlinedButton(
                     onClick = {
-                        openRoute(context, current.destLat, current.destLng, current.clientName, vm)
+                        if (irAlRestaurante && restaurante != null) {
+                            openRoute(context, restaurante.lat, restaurante.lng, restaurante.name, vm)
+                        } else {
+                            openRoute(context, current.destLat, current.destLng, current.clientName, vm)
+                        }
                     },
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.map_open_route))
+                    Text(
+                        stringResource(
+                            if (irAlRestaurante) R.string.map_open_route_restaurant
+                            else R.string.map_open_route_client
+                        )
+                    )
                 }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(
@@ -573,4 +621,79 @@ private fun openRoute(
         if (runCatching { context.startActivity(intent) }.isSuccess) return
     }
     vm.showMessage(R.string.map_route_error)
+}
+
+/** Detalle del pedido tocado en el mapa, con aceptar y rechazar. */
+@Composable
+private fun AvailableOrderCard(
+    pedido: Pedido,
+    onAccept: () -> Unit,
+    onReject: () -> Unit,
+    onRoute: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.map_order_available_title, pedido.id),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_fa_xmark),
+                        contentDescription = stringResource(R.string.detail_close),
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(pedido.clientName, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                pedido.clientAddress,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    String.format(Locale.ROOT, "%.1f km", pedido.distanceKm),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Text(
+                    String.format(Locale.ROOT, "$%.2f", pedido.total),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Text(pedido.paymentMethod, style = MaterialTheme.typography.labelLarge)
+            }
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = onAccept,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.action_accept_short))
+                }
+                OutlinedButton(
+                    onClick = onReject,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.action_reject))
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            TextButton(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.map_open_route_client))
+            }
+        }
+    }
 }

@@ -3,6 +3,8 @@ package com.driverapp.repartidor.ui.tracking
 import app.cash.turbine.test
 import com.driverapp.repartidor.domain.model.EstadoPedido
 import com.driverapp.repartidor.domain.repository.PedidoRepository
+import com.driverapp.repartidor.domain.usecase.AceptarPedidoUseCase
+import com.driverapp.repartidor.domain.usecase.RechazarPedidoUseCase
 import com.driverapp.repartidor.domain.usecase.MarcarEnCaminoUseCase
 import com.driverapp.repartidor.domain.usecase.MarcarPedidoEntregadoUseCase
 import com.driverapp.repartidor.domain.usecase.ObtenerHistorialUseCase
@@ -37,10 +39,15 @@ class TrackingViewModelTest {
     private val historial: ObtenerHistorialUseCase = mockk()
     private val enCamino: MarcarEnCaminoUseCase = mockk()
     private val entregar: MarcarPedidoEntregadoUseCase = mockk()
+    private val aceptar: AceptarPedidoUseCase = mockk()
+    private val rechazar: RechazarPedidoUseCase = mockk()
     private val messenger = UiMessenger()
 
     private fun viewModel() =
-        TrackingViewModel(repo, misPedidos, historial, enCamino, entregar, messenger)
+        TrackingViewModel(
+            repo, misPedidos, historial, enCamino, entregar,
+            aceptar, rechazar, messenger
+        )
 
     @Before
     fun setup() {

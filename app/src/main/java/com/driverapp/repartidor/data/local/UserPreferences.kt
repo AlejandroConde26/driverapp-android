@@ -40,6 +40,9 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
     val notificationsEnabled: Flow<Boolean> = dataStore.data.map { it[KEY_NOTIF] ?: true }
     val locationEnabled: Flow<Boolean> = dataStore.data.map { it[KEY_LOCATION] ?: true }
     val notificationSound: Flow<Boolean> = dataStore.data.map { it[KEY_SOUND] ?: true }
+
+    /** Si ya se pidió el permiso de ubicación en el primer arranque. */
+    val locationAsked: Flow<Boolean> = dataStore.data.map { it[KEY_LOCATION_ASKED] ?: false }
     val showBalance: Flow<Boolean> = dataStore.data.map { it[KEY_BALANCE] ?: true }
     val language: Flow<String> = dataStore.data.map { it[KEY_LANG] ?: LANG_ES }
 
@@ -50,6 +53,8 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
     suspend fun setLocationEnabled(value: Boolean) = dataStore.edit { it[KEY_LOCATION] = value }
 
     suspend fun setNotificationSound(value: Boolean) = dataStore.edit { it[KEY_SOUND] = value }
+
+    suspend fun setLocationAsked() = dataStore.edit { it[KEY_LOCATION_ASKED] = true }
 
     suspend fun setShowBalance(value: Boolean) = dataStore.edit { it[KEY_BALANCE] = value }
 
@@ -101,6 +106,7 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
         private val KEY_NOTIF = booleanPreferencesKey("notifications")
         private val KEY_LOCATION = booleanPreferencesKey("location")
         private val KEY_SOUND = booleanPreferencesKey("sound")
+        private val KEY_LOCATION_ASKED = booleanPreferencesKey("location_asked")
         private val KEY_BALANCE = booleanPreferencesKey("show_balance")
         private val KEY_LANG = stringPreferencesKey("language")
     }

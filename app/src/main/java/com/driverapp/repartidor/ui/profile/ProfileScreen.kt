@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +19,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -242,7 +247,7 @@ fun ProfileScreen(
                     ProfileViewModel.VEHICLES.forEach { vehicle ->
                         ActionRow(
                             label = vehicle,
-                            value = if (vehicle.equals(user?.vehicle, true)) "✓" else ""
+                            selected = vehicle.equals(user?.vehicle, true)
                         ) {
                             vm.updateVehicle(vehicle)
                             vehicleDialog = false
@@ -338,6 +343,7 @@ private fun StatColumn(label: String, value: String, modifier: Modifier = Modifi
 private fun ActionRow(
     label: String,
     value: String = "",
+    selected: Boolean = false,
     onClick: () -> Unit
 ) {
     Column {
@@ -352,12 +358,29 @@ private fun ActionRow(
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
+            if (selected) {
+                // Icono, no carácter: la app solo usa iconos.
+                Icon(
+                    painter = painterResource(R.drawable.ic_fa_check),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+            }
             Text(
                 value,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            TextButton(onClick = onClick) { Text("›") }
+            IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_fa_chevron_right),
+                    contentDescription = label,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
         Divider(color = MaterialTheme.colorScheme.outline)
     }

@@ -82,7 +82,9 @@
     <string name="map_play_services_missing">Este dispositivo no tiene Google Play Services: no se puede mostrar el mapa.</string>
     <string name="map_dial_error">No se pudo abrir el marcador</string>
     <string name="map_localizing">Localizando…</string>
-    <string name="map_open_route">Cómo llegar en Google Maps</string>
+    <string name="map_open_route_restaurant">Cómo llegar al restaurante en Google Maps</string>
+    <string name="map_open_route_client">Cómo llegar al cliente en Google Maps</string>
+    <string name="map_order_available_title">Pedido #%1$d disponible</string>
     <string name="map_center_me">Centrar en mi ubicación</string>
     <string name="map_marker_restaurant">Restaurante: %1$s</string>
     <string name="map_marker_client">Cliente: %1$s</string>
@@ -178,7 +180,7 @@
 
     <!-- Mensajes -->
     <string name="msg_order_accepted">¡Pedido aceptado!</string>
-    <string name="msg_order_completed">¡Pedido completado! 🎉</string>
+    <string name="msg_order_completed">¡Pedido completado!</string>
     <string name="msg_order_rejected">Pedido rechazado</string>
     <string name="msg_order_on_the_way">En camino al cliente</string>
     <string name="msg_profile_updated">Perfil actualizado</string>

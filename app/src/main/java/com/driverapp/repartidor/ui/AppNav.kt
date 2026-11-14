@@ -2,13 +2,17 @@ package com.driverapp.repartidor.ui
 
 import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.core.content.ContextCompat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -87,6 +91,22 @@ fun AppNav(
 
     val start = remember { if (loginVm.isLoggedIn()) Routes.ORDERS else Routes.LOGIN }
 
+    // Primer arranque con sesión: se pide el permiso de ubicación para que el reporte
+    // en tiempo real funcione sin que el usuario tenga que ir a Perfil. Se pregunta
+    // una sola vez (queda marcado en DataStore).
+    val locationAsked by container.userPreferences.locationAsked
+        .collectAsStateWithLifecycle(initialValue = true)
+    var sessionTick by remember { mutableStateOf(0) }
+    LaunchedEffect(locationAsked, sessionTick) {
+        val granted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!locationAsked && !granted && loginVm.isLoggedIn()) {
+            container.userPreferences.setLocationAsked()
+            locationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
     // Pedido abierto desde una notificación: se navega a Órdenes y la pantalla
     // consume el id para abrir el detalle.
     val pendingId by pendingOrderId.collectAsStateWithLifecycle()
@@ -111,6 +131,8 @@ fun AppNav(
                         nav.navigate(Routes.ORDERS) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
+                        // Recién autenticado es el momento de pedir la ubicación.
+                        sessionTick++
                     }
                 )
             }
