@@ -3,6 +3,7 @@ package com.driverapp.repartidor.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.driverapp.repartidor.R
+import com.driverapp.repartidor.data.firebase.FirebaseMessagingDataSource
 import com.driverapp.repartidor.data.remote.ApiFailure
 import com.driverapp.repartidor.data.remote.toApiFailure
 import com.driverapp.repartidor.domain.repository.AuthRepository
@@ -22,7 +23,8 @@ sealed interface LoginState {
 class LoginViewModel(
     private val loginUseCase: LoginUseCase,
     private val auth: AuthRepository,
-    private val messenger: UiMessenger
+    private val messenger: UiMessenger,
+    private val firebaseMessaging: FirebaseMessagingDataSource
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoginState>(LoginState.Idle)
@@ -36,6 +38,15 @@ class LoginViewModel(
         viewModelScope.launch {
             try {
                 val user = loginUseCase(email, password)
+                // Con la sesión recién emitida se registra el token FCM del dispositivo.
+                // Antes solo se hacía en onNewToken/onResume, que fallaban con 401 si la
+                // sesión guardada era antigua: el backend se quedaba con un token muerto
+                // y FCM respondía NotRegistered.
+                runCatching {
+                    firebaseMessaging.fetchToken()?.takeIf { it.isNotBlank() }?.let {
+                        auth.updateFcmToken(it)
+                    }
+                }
                 _state.value = LoginState.Success(user.name)
             } catch (e: Throwable) {
                 val failure = e.toApiFailure()

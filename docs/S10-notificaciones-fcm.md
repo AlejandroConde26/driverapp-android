@@ -85,6 +85,7 @@ el anterior y el envío respondía **`NotRegistered`**. Ahora:
 
 | Punto | Comportamiento |
 |---|---|
+| `LoginViewModel.login` | Al entrar con credenciales correctas se registra el token FCM con la sesión recién emitida (es la ruta que garantiza un JWT válido) |
 | `DriverFirebaseMessagingService.onNewToken` | Además de guardarlo en memoria, lo registra en el backend con `PUT /users/me/fcm-token` (corrutina en IO, solo si hay sesión) |
 | `MainActivity.onResume` | Autorreparación: pide el token actual a `FirebaseMessaging` y lo reenvía al backend si hay sesión |
 

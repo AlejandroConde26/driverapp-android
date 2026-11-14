@@ -2,6 +2,7 @@ package com.driverapp.repartidor.ui.login
 
 import app.cash.turbine.test
 import com.driverapp.repartidor.R
+import com.driverapp.repartidor.data.firebase.FirebaseMessagingDataSource
 import com.driverapp.repartidor.domain.repository.AuthRepository
 import com.driverapp.repartidor.domain.usecase.LoginUseCase
 import com.driverapp.repartidor.sampleUser
@@ -29,8 +30,9 @@ class LoginViewModelTest {
 
     private val auth: AuthRepository = mockk()
     private val messenger = UiMessenger()
+    private val messaging = mockk<FirebaseMessagingDataSource>(relaxed = true)
 
-    private fun viewModel() = LoginViewModel(LoginUseCase(auth), auth, messenger)
+    private fun viewModel() = LoginViewModel(LoginUseCase(auth), auth, messenger, messaging)
 
     @Before
     fun setup() {

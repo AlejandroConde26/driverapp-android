@@ -112,7 +112,7 @@ class AppContainer(context: Context) {
 
     // ---------- ViewModel factories ----------
     fun loginViewModelFactory() = ViewModelFactory {
-        LoginViewModel(loginUseCase, authRepository, messenger)
+        LoginViewModel(loginUseCase, authRepository, messenger, firebaseMessaging)
     }
 
     fun mainViewModelFactory() = ViewModelFactory {
