@@ -101,12 +101,12 @@ El botón de login queda **inhabilitado** mientras el formulario no sea válido
 | Validaciones bloquean el envío inválido | ✅ | `LoginViewModelTest` (6 tests) |
 | Carga/error con reintento en todas las pantallas | ✅ | `LoadingStateBox`, `ErrorStateBox`, `EmptyStateBox` |
 | Tema B/N y es/en preservados | ✅ | `ui/theme/Theme.kt` + 166 claves por idioma |
-| Mapa osmdroid vía `AndroidView` | ✅ | `TrackingScreen.kt` |
-| Tests en verde tras la migración | ✅ | **51 tests, 0 fallos** |
+| Mapa Google Maps vía `AndroidView` + `MapView` | ✅ | `TrackingScreen.kt` |
+| Tests en verde tras la migración | ✅ | **56 tests, 0 fallos** |
 
 ## 7. Deuda conocida
 
-- Sin emulador en la máquina de desarrollo, la verificación es **compilación + 51 tests
+- Sin emulador en la máquina de desarrollo, la verificación es **compilación + 56 tests
   unitarios**; falta un smoke test visual en dispositivo.
 - `ProfileScreen.kt` (394 líneas) y `TrackingScreen.kt` (356) son las pantallas más
   grandes; si crecen conviene extraer sub-composables por sección.

@@ -109,3 +109,23 @@ solo al abrir la app con el APK actualizado (`PUT /users/me/fcm-token`).
 | API de FCM acepta la petición | error de token, no de credenciales |
 | `POST /api/v1/notifications/send` (admin) | **HTTP 200**, notificación persistida (id 23) |
 | Entrega al teléfono | pendiente: requiere el APK nuevo instalado (el token debe emitirse en el proyecto nuevo) |
+
+## 6. Comportamiento del mapa en la versión actual
+
+Resumen de lo que hace el mapa (`ui/tracking/TrackingScreen.kt`) y qué se necesita para que
+funcione en el teléfono:
+
+| Aspecto | Implementación |
+|---|---|
+| Vista | `MapView` dentro de `AndroidView`, ciclo de vida conectado al `LifecycleOwner` (`onCreate`/`onResume`/`onPause`/`onDestroy`) |
+| Marcadores | Restaurante **azul**, cliente **rojo**, pedidos disponibles **naranja** (con `id` en el `tag`), repartidor **verde** solo si no hay punto azul nativo |
+| Encuadre | `newLatLngBounds` con todos los puntos y 140 px de relleno; se reajusta al cambiar de pedido y al pulsar «Centrar en mi ubicación» (no en cada lectura del GPS) |
+| Tocar un pedido disponible | Abre `AvailableOrderCard` bajo el mapa: cliente, dirección, distancia, importe, pago y botones **Aceptar / Rechazar** |
+| Mi ubicación | `isMyLocationEnabled` con permiso concedido; sin permiso se dibuja un marcador verde y una banda de aviso sobre el mapa |
+| Ruta | `google.navigation:` → `geo:` → Maps web. Con el pedido `ACEPTADO` apunta al **restaurante** («Cómo llegar al restaurante en Google Maps»); desde `EN_CAMINO`, al **cliente** |
+| Permiso de ubicación | Se solicita al primer arranque con sesión, una sola vez (`location_asked` en DataStore); si la denegación es definitiva, se abre Ajustes → Permisos |
+
+**Requisito de la clave:** en Google Cloud, la key de `MAPS_API_KEY` debe tener habilitada
+*Maps SDK for Android* y estar restringida por nombre de paquete (`com.driverapp.repartidor`)
+y huella SHA-1 (`47:92:21:36:78:BD:EC:8D:97:5A:53:68:D6:02:B6:04:FF:A6:87:78` para debug).
+Sin eso el mapa sale gris aunque las coordenadas sean correctas.

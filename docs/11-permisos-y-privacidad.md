@@ -30,7 +30,7 @@ Estado real de `app/src/main/AndroidManifest.xml` al cierre de esta entrega.
 | `WAKE_LOCK` | **No** | `LocationManager` con `requestLocationUpdates` mantiene el GPS mientras el servicio vive; no se observó corte por doze. |
 | `VIBRATE` | **No** | La vibración la aplica el canal de notificación si el usuario la habilita en el sistema. |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | **No** | Play lo penaliza; en su lugar se documenta al usuario que excluya la app de la optimización de batería del fabricante. |
-| `READ/WRITE_EXTERNAL_STORAGE` | **No** | No se escribe en almacenamiento compartido; la caché de osmdroid y Room van en el directorio privado. |
+| `READ/WRITE_EXTERNAL_STORAGE` | **No** | No se escribe en almacenamiento compartido; la caché de Google Maps y Room van en el directorio privado. |
 
 ### 1.2 Flujo de solicitud (estados)
 

@@ -1,7 +1,7 @@
 # DriverApp / SUMAQ — Requerimientos no funcionales
 
 ## 1. Rendimiento
-- La app arranca y navega sin esperas perceptibles; el mapa (osmdroid) no bloquea el hilo principal.
+- La app arranca y navega sin esperas perceptibles; el mapa (Google Maps) no bloquea el hilo principal.
 - Consultas de pedidos y ganancias se hacen asíncronas (Retrofit/OkHttp + corrutinas).
 - El backend responde los endpoints de la API en tiempos razonables para una flota pequeña.
 - El historial de ganancias se cachea/sirve por `period` sin recalcular en cada request.
@@ -36,7 +36,7 @@
 - Android: Kotlin 1.9, minSdk 24, target/compile SDK 34, AGP 8.4.0, Gradle 8.6,
   JDK 17–21 (build con 21 verificado).
 - Build reproducible con wrapper: `./gradlew :app:assembleDebug :app:testDebugUnitTest`.
-- **51 tests unitarios** en verde (MockK + Turbine + coroutines-test + Robolectric) y **13 tests** de backend (pytest).
+- **56 tests unitarios** en verde (MockK + Turbine + coroutines-test + Robolectric) y **13 tests** de backend (pytest).
 - UI en **Jetpack Compose** (Compose 1.5 / compiler 1.5.0 emparejado con Kotlin 1.9.0);
   persistencia local con **DataStore + Room** y repositorios cache-first.
 

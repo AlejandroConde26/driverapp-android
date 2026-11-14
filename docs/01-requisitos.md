@@ -51,7 +51,9 @@ rechazar cada uno, **para** decidir qué entregas tomo.
 cliente y mi posición en vivo, **para** llegar al destino.
 
 **Criterios de aceptación**
-- El mapa (osmdroid) marca restaurante, cliente y posición GPS.
+- El mapa (Google Maps) marca restaurante, cliente y posición GPS, y encuadra la ruta completa.
+- El permiso de ubicación se solicita al primer arranque con sesión; la ruta guía al restaurante
+  hasta marcar «Salí del restaurante» y al cliente después.
 - Muestra distancia y ETA en vivo según velocidad del vehículo o del GPS.
 - Marcar `EN_CAMINO` al salir; al llegar, `ENTREGADO` cierra el pedido y suma la comisión.
 

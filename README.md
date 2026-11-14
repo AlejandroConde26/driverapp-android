@@ -7,7 +7,7 @@ backend FastAPI (`:8084`), dashboard web-admin (`:3000`) y esta app.
 
 - **Iniciar sesión** con correo y contraseña contra el backend (JWT propio del servidor; Firebase no interviene en el login).
 - **Ver pedidos disponibles**, aceptarlos o rechazarlos (pestaña *Órdenes*).
-- **Seguir la entrega en el mapa** (osmdroid) con ETA y distancia en vivo, y marcar
+- **Seguir la entrega en el mapa** (Google Maps) con ETA y distancia en vivo, y marcar
   *EN_CAMINO* al salir del restaurante.
 - **Ver ganancias** por día/semana/mes/año con gráficas.
 - **Gestionar perfil y 5 preferencias** (modo oscuro, notificaciones, ubicación, sonido,
@@ -37,7 +37,7 @@ Flujo: `UI (Compose) → ViewModel → UseCase → Repository (cache-first) → 
 | Métrica | Valor |
 |---|---|
 | Kotlin producción | 73 archivos · 6.139 líneas |
-| Kotlin test | 14 archivos · 1.156 líneas · **51 tests** |
+| Kotlin test | 15 archivos · 1.243 líneas · **56 tests** |
 | Layouts XML | **0** (2.922 líneas migradas a Compose) |
 | Capas | domain 18 · data 29 · di 2 · ui 23 archivos |
 
@@ -49,7 +49,7 @@ Requisitos: JDK 17, Android SDK 34, Gradle 8.6 (wrapper incluido).
 git clone <repo> && cd driverapp-android-main
 # local.properties: sdk.dir, y opcionalmente las claves FIREBASE_* (ver docs/S10)
 ./gradlew :app:assembleDebug        # APK en app/build/outputs/apk/debug/
-./gradlew :app:testDebugUnitTest    # 51 tests unitarios (MockK + Turbine + Robolectric)
+./gradlew :app:testDebugUnitTest    # 56 tests unitarios (MockK + Turbine + Robolectric)
 ```
 
 ## Configuración
@@ -95,6 +95,11 @@ git clone <repo> && cd driverapp-android-main
   `docs/03-sprints.md`.
 - **Autenticación:** la emite el backend (correo + contraseña → JWT propio). Contrato y
   verificación en `docs/auth-backend.md`.
+- **Mapa:** Google Maps con encuadre automático (restaurante azul, cliente rojo, disponibles
+  naranja); los pedidos disponibles son tocables y abren aceptar/rechazar bajo el mapa, y el
+  botón de ruta apunta al restaurante hasta que el repartidor marca «Salí del restaurante».
+- **Permisos:** el de ubicación se solicita al primer arranque con sesión (una sola vez); si se
+  deniega para siempre, la app abre Ajustes → Permisos.
 - **Firebase:** sólo notificaciones push (FCM), en el proyecto `proyectorepartidor-87835`
   — el mismo del service account del backend. Sin Auth, sin Firestore, sin Storage;
   detalle en `docs/S10-notificaciones-fcm.md`.

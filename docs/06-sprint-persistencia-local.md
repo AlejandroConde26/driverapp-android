@@ -133,7 +133,7 @@ cacheado, propaga el error.
 | `OrderDaoTest` (6) | Room in-memory con Robolectric: pedido + items, `replaceBucket`, `moveTo`, cola de acciones, caché de ganancias, `clearOrders` |
 | `PedidoRepositoryImplTest` (8) | cache-first: escribe en el bucket correcto, `EN_CAMINO`, `HISTORY`, encolado sin red, 404 no se encola, `detail` cae a caché |
 
-Comando: `./gradlew :app:testDebugUnitTest` → 51 tests, 0 fallos.
+Comando: `./gradlew :app:testDebugUnitTest` → 56 tests, 0 fallos.
 
 ## 7. Evidencia de arquitectura MVVM
 

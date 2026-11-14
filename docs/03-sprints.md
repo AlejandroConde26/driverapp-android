@@ -15,7 +15,7 @@ Estado del pedido: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO` (o `RECH
 |---|---|---|---|
 | 1 | Base: login, sesión y perfil | ✅ | `LoginViewModelTest` (6), `ProfileViewModelTest` (5) |
 | 2 | Órdenes y flujo de entrega | ✅ | `TrackingViewModelTest` cubre `ACEPTADO→EN_CAMINO→ENTREGADO` |
-| 3 | Mapa, GPS y notificaciones | ✅ ¹ | `LocationForegroundService` + `TrackingScreen` + Google Maps (punto azul, ruta a Google Maps) |
+| 3 | Mapa, GPS y notificaciones | ✅ ¹ | `LocationForegroundService` + `TrackingScreen` + Google Maps (punto azul, encuadre de ruta, pedidos tocables con aceptar/rechazar, ruta al restaurante y al cliente) |
 | 4 | Ganancias, preferencias y pulido | ✅ | `EarningsViewModelTest`, `UserPreferencesTest` |
 | 5 | Interfaz y navegación en Jetpack Compose | ✅ | 0 layouts XML, `NavHost` en `ui/AppNav.kt` |
 | 6 | Persistencia local: DataStore, Room, Repository | ✅ | `OrderDaoTest` (6), `app/schemas/…/1.json` |
@@ -83,7 +83,7 @@ correcto; `TrackingViewModelTest` verifica el callback con el estado `EN_CAMINO`
 
 ## Sprint 3 — Mapa, GPS y notificaciones ✅ (push pendiente de credenciales)
 
-- [x] **HU-04** osmdroid con marcador de restaurante, cliente y posición propia
+- [x] **HU-04** Google Maps con marcador de restaurante (azul), cliente (rojo), disponibles (naranja) y posición propia (punto azul)
   (`ui/tracking/TrackingScreen.kt`, `AndroidView`).
 - [x] Distancia y ETA en vivo; el destino cambia según el estado: restaurante si
   `ACEPTADO`, cliente si `EN_CAMINO`.
@@ -114,7 +114,7 @@ válidas no llega ninguna notificación.
   y los mensajes de los ViewModels salen de recursos (`UiMessage.Res`), no de literales.
 - [x] Documentación del proyecto actualizada (`docs/`).
 
-**Definición de terminado:** 51/51 tests en verde; `EarningsViewModelTest` verifica que
+**Definición de terminado:** 56/56 tests en verde (51 en el cierre del sprint); `EarningsViewModelTest` verifica que
 `toggleBalance` persiste en DataStore.
 
 ---
@@ -130,7 +130,7 @@ Detalle completo en `docs/05-sprint-interfaz-navegacion.md`. Resumen:
 - [x] Validaciones de login (regex de correo, contraseña ≥ 6, `isError` +
   `supportingText`, botón inhabilitado) y de perfil (nombre ≥ 2, teléfono 7–15 dígitos,
   vehículo obligatorio).
-- [x] Mapa osmdroid embebido con `AndroidView`.
+- [x] Mapa **Google Maps** (`play-services-maps`) embebido con `AndroidView` y `MapView`; sustituyó a osmdroid por el punto azul nativo y las rutas.
 - [x] Se eliminaron **2.922 líneas de XML** y los 6 Fragments: 0 archivos en `res/layout`.
 
 ---

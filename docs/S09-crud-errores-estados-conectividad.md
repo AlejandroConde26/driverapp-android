@@ -100,4 +100,4 @@ siguiente.
 | `PedidoRepositoryImplTest` (8) | sin red **encola** y aplica optimista; un 404 **no** se encola |
 | `OrderDaoTest` (6) | `pending_actions` persiste la acción y el contador la refleja |
 
-Comando: `./gradlew :app:testDebugUnitTest` → 51 tests, 0 fallos.
+Comando: `./gradlew :app:testDebugUnitTest` → 56 tests, 0 fallos.
