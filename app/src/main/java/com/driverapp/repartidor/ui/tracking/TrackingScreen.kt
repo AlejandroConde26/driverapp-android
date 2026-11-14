@@ -59,9 +59,14 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import java.util.Locale
+
+/** Relleno del encuadre: los marcadores no deben quedar pegados al borde. */
+private const val MAP_FIT_PADDING_PX = 140
 
 /**
  * Pestaña Mapa (Sprint 3): restaurante, cliente y posición GPS en osmdroid,
@@ -77,6 +82,7 @@ fun TrackingScreen(
     modifier: Modifier = Modifier
 ) {
     val order by vm.displayedOrder.collectAsStateWithLifecycle()
+    val disponibles by vm.availableOrders.collectAsStateWithLifecycle()
     val location by locationRepo.location.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
 
@@ -88,6 +94,7 @@ fun TrackingScreen(
     val googleMap = remember { mutableStateOf<GoogleMap?>(null) }
     var centeredOnce by remember { mutableStateOf(false) }
     var recenter by remember { mutableStateOf(0) }
+    var fitKey by remember { mutableStateOf("") }
 
     val hasLocationPermission = ContextCompat.checkSelfPermission(
         context,
@@ -165,11 +172,10 @@ fun TrackingScreen(
                         }
                     },
                     update = { view ->
-                        // `googleMap` y `recenter` se leen aquí: cuando cambian, esta
-                        // lambda se vuelve a ejecutar.
+                        // `googleMap`, `order`, `location` y `recenter` se leen aquí:
+                        // cuando cambian, esta lambda se vuelve a ejecutar.
                         val map = googleMap.value ?: return@AndroidView
-                        recenter.let { }
-                        // Si el permiso se concedió con la pantalla abierta, se activa aquí.
+                        // Con el permiso concedido con la pantalla abierta, se activa aquí.
                         if (hasLocationPermission && !map.isMyLocationEnabled) {
                             runCatching { map.isMyLocationEnabled = true }
                         }
@@ -177,45 +183,129 @@ fun TrackingScreen(
 
                         val currentOrder = order
                         val currentLocation = location
+                        val puntos = mutableListOf<LatLng>()
 
+                        // Restaurante en azul para no confundirlo con el destino.
                         currentOrder?.restaurant?.let { restaurant ->
+                            val punto = LatLng(restaurant.lat, restaurant.lng)
+                            puntos += punto
                             map.addMarker(
                                 MarkerOptions()
-                                    .position(LatLng(restaurant.lat, restaurant.lng))
-                                    .title(restaurant.name)
+                                    .position(punto)
+                                    .icon(
+                                        BitmapDescriptorFactory.defaultMarker(
+                                            BitmapDescriptorFactory.HUE_AZURE
+                                        )
+                                    )
+                                    .title(
+                                        context.getString(R.string.map_marker_restaurant, restaurant.name)
+                                    )
                             )
                         }
-                        currentOrder?.let {
+
+                        // Destino (cliente) en rojo, con la dirección como subtítulo.
+                        currentOrder?.let { pedido ->
+                            val punto = LatLng(pedido.destLat, pedido.destLng)
+                            puntos += punto
                             map.addMarker(
                                 MarkerOptions()
-                                    .position(LatLng(it.destLat, it.destLng))
-                                    .title(it.clientName)
+                                    .position(punto)
+                                    .icon(
+                                        BitmapDescriptorFactory.defaultMarker(
+                                            BitmapDescriptorFactory.HUE_RED
+                                        )
+                                    )
+                                    .title(
+                                        context.getString(R.string.map_marker_client, pedido.clientName)
+                                    )
+                                    .snippet(pedido.clientAddress)
                             )
                         }
-                        // Sin punto azul nativo (permiso pendiente) se dibuja el marcador.
-                        if (!hasLocationPermission) {
-                            currentLocation?.let {
+
+                        // Pedidos disponibles en naranja: permiten elegir por distancia
+                        // sin tener que aceptarlos a ciegas.
+                        val idsEnCurso = setOfNotNull(currentOrder?.id)
+                        disponibles.filterNot { it.id in idsEnCurso }.forEach { pedido ->
+                            val punto = LatLng(pedido.destLat, pedido.destLng)
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(punto)
+                                    .icon(
+                                        BitmapDescriptorFactory.defaultMarker(
+                                            BitmapDescriptorFactory.HUE_ORANGE
+                                        )
+                                    )
+                                    .title(
+                                        context.getString(R.string.map_marker_available, pedido.id)
+                                    )
+                                    .snippet(pedido.clientAddress)
+                            )
+                            // Solo se encuadran si no hay reparto en curso: si lo hay, la
+                            // ruta manda y no conviene alejar la cámara.
+                            if (currentOrder == null) puntos += punto
+                        }
+
+                        if (currentLocation != null) {
+                            val punto = LatLng(currentLocation.lat, currentLocation.lng)
+                            // Con punto azul nativo no se duplica el marcador.
+                            if (!hasLocationPermission) {
                                 map.addMarker(
                                     MarkerOptions()
-                                        .position(LatLng(it.lat, it.lng))
+                                        .position(punto)
+                                        .icon(
+                                            BitmapDescriptorFactory.defaultMarker(
+                                                BitmapDescriptorFactory.HUE_GREEN
+                                            )
+                                        )
                                         .title(context.getString(R.string.map_my_location))
                                 )
                             }
+                            puntos += punto
                         }
 
-                        // Centrar: restaurante > mi ubicación > destino. Sin pedido activo
-                        // cae en la posición del repartidor, que es lo que se espera.
-                        if (!centeredOnce) {
-                            val target = currentOrder?.restaurant?.let { LatLng(it.lat, it.lng) }
-                                ?: currentLocation?.let { LatLng(it.lat, it.lng) }
-                                ?: currentOrder?.let { LatLng(it.destLat, it.destLng) }
-                            if (target != null) {
-                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(target, 16f))
-                                centeredOnce = true
+                        // Encuadre: se reajusta cuando cambia el pedido o al pulsar
+                        // "Centrar". Antes se centraba solo en el restaurante y el destino
+                        // podía quedar 11 km fuera de pantalla.
+                        val clave = "${currentOrder?.id ?: -1}#$recenter#${currentLocation != null}"
+                        if (clave != fitKey && puntos.isNotEmpty()) {
+                            fitKey = clave
+                            if (puntos.size == 1) {
+                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(puntos.first(), 16f))
+                            } else {
+                                val bounds = LatLngBounds.builder()
+                                    .also { b -> puntos.forEach { b.include(it) } }
+                                    .build()
+                                runCatching {
+                                    map.moveCamera(
+                                        CameraUpdateFactory.newLatLngBounds(bounds, MAP_FIT_PADDING_PX)
+                                    )
+                                }.onFailure {
+                                    // Si el mapa aún no tiene tamaño, se centra en el destino.
+                                    map.moveCamera(
+                                        CameraUpdateFactory.newLatLngZoom(puntos.first(), 13f)
+                                    )
+                                }
                             }
                         }
                     }
                 )
+
+                // Aviso cuando no hay permiso: sin él no hay punto azul ni posición propia.
+                if (!hasLocationPermission) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.map_activate_location),
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+                }
 
                 // Volver a centrar en la posición del repartidor tras mover el mapa.
                 if (hasLocationPermission) {
@@ -224,7 +314,6 @@ fun TrackingScreen(
                             centeredOnce = false
                             recenter++
                         },
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(12.dp)
@@ -268,24 +357,28 @@ fun TrackingScreen(
                 Spacer(Modifier.height(14.dp))
 
                 val onTheWay = current.estado == EstadoPedido.EN_CAMINO
-                if (!onTheWay) {
+                // Un pedido disponible (PENDIENTE) no se puede marcar en camino ni
+                // completar: primero hay que aceptarlo desde la lista.
+                if (current.estado != EstadoPedido.PENDIENTE) {
+                    if (!onTheWay) {
+                        Button(
+                            onClick = { confirmStart = true },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.map_start_delivery))
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
                     Button(
-                        onClick = { confirmStart = true },
+                        onClick = { confirmComplete = true },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.map_start_delivery))
+                        Text(stringResource(R.string.map_complete_delivery))
                     }
                     Spacer(Modifier.height(8.dp))
                 }
-                Button(
-                    onClick = { confirmComplete = true },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.map_complete_delivery))
-                }
-                Spacer(Modifier.height(8.dp))
                 OutlinedButton(
                     onClick = {
                         openRoute(context, current.destLat, current.destLng, current.clientName, vm)

@@ -84,6 +84,9 @@
     <string name="map_localizing">Localizando…</string>
     <string name="map_open_route">Cómo llegar en Google Maps</string>
     <string name="map_center_me">Centrar en mi ubicación</string>
+    <string name="map_marker_restaurant">Restaurante: %1$s</string>
+    <string name="map_marker_client">Cliente: %1$s</string>
+    <string name="map_marker_available">Disponible · pedido #%1$d</string>
     <string name="map_route_error">No se pudo abrir Google Maps</string>
     <string name="map_no_location_yet">Esperando señal GPS…</string>
     <string name="pref_applying">Aplicando cambios…</string>

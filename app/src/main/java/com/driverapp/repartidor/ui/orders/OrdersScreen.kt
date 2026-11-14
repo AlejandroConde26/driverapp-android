@@ -111,15 +111,11 @@ fun OrdersScreen(
                 TextButton(onClick = { vm.closeDetail() }) { Text(stringResource(R.string.detail_close)) }
             },
             dismissButton = {
-                // Solo los pedidos en curso tienen sentido en el mapa: los disponibles
-                // aún no son del repartidor (se aceptan primero).
-                if (current.estado != EstadoPedido.PENDIENTE) {
-                    TextButton(onClick = {
-                        vm.closeDetail()
-                        onShowOnMap(current.id)
-                    }) {
-                        Text(stringResource(R.string.detail_show_on_map))
-                    }
+                TextButton(onClick = {
+                    vm.closeDetail()
+                    onShowOnMap(current.id)
+                }) {
+                    Text(stringResource(R.string.detail_show_on_map))
                 }
             }
         )

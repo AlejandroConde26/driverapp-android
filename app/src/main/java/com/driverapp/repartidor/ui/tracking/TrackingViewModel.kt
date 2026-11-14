@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class TrackingViewModel(
-    repo: PedidoRepository,
+    private val repo: PedidoRepository,
     private val misPedidos: ObtenerMisPedidosUseCase,
     private val historial: ObtenerHistorialUseCase,
     private val enCamino: MarcarEnCaminoUseCase,
@@ -33,6 +33,10 @@ class TrackingViewModel(
 
     val activeOrder: StateFlow<Pedido?> =
         repo.activeOrder.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Pedidos disponibles: se pintan en el mapa para elegir por distancia. */
+    val availableOrders: StateFlow<List<Pedido>> =
+        repo.available.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /**
      * Pedido que se pinta en el mapa: el enfocado desde la lista ("Ver en el mapa")
@@ -64,6 +68,8 @@ class TrackingViewModel(
     fun refreshActive() {
         viewModelScope.launch {
             runCatching { misPedidos() }.onFailure { _error.value = it.toErrorState() }
+            // También los disponibles: se pintan en el mapa para elegir por distancia.
+            runCatching { repo.refreshAvailable() }
         }
     }
 
