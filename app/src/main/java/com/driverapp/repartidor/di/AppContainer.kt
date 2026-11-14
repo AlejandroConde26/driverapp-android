@@ -2,6 +2,7 @@ package com.driverapp.repartidor.di
 
 import android.content.Context
 import com.driverapp.repartidor.BuildConfig
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.driverapp.repartidor.data.firebase.FirebaseMessagingDataSource
 import com.driverapp.repartidor.data.hardware.gps.LocationRepositoryImpl
 import com.driverapp.repartidor.data.local.TokenDataStore
@@ -77,6 +78,9 @@ class AppContainer(context: Context) {
     val authApi: AuthApiService by lazy { retrofit.create(AuthApiService::class.java) }
     val pedidoApi: PedidoApiService by lazy { retrofit.create(PedidoApiService::class.java) }
 
+    /** Pedido que debe mostrarse en el mapa ("Ver en el mapa" desde la lista). */
+    val mapFocus = MutableStateFlow<Int?>(null)
+
     // Firebase sólo se usa para notificaciones push (FCM).
     val firebaseMessaging: FirebaseMessagingDataSource by lazy { FirebaseMessagingDataSource() }
 
@@ -129,7 +133,7 @@ class AppContainer(context: Context) {
     fun trackingViewModelFactory() = ViewModelFactory {
         TrackingViewModel(
             pedidoRepository, misPedidos, historialPedidos,
-            marcarEnCamino, marcarEntregado, messenger
+            marcarEnCamino, marcarEntregado, messenger, mapFocus
         )
     }
 

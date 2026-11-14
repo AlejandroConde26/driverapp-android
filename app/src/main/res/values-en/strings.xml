@@ -44,6 +44,7 @@
     <string name="order_distance">Distance</string>
     <string name="order_eta">Estimated time</string>
     <string name="detail_close">Close</string>
+    <string name="detail_show_on_map">Show on map</string>
     <string name="label_note">Note: %1$s</string>
     <string name="status_accepted">Accepted</string>
     <string name="status_on_the_way">On the way</string>

@@ -78,6 +78,13 @@ fun AppNav(
         }
     }
 
+    // Ir al mapa desde la barra de pestañas muestra el pedido en curso; el foco
+    // individual solo se pone con "Ver en el mapa" desde el detalle.
+    val goToTab: (String) -> Unit = { route ->
+        if (route == Routes.MAP) container.mapFocus.value = null
+        nav.navigateTo(route)
+    }
+
     val start = remember { if (loginVm.isLoggedIn()) Routes.ORDERS else Routes.LOGIN }
 
     // Pedido abierto desde una notificación: se navega a Órdenes y la pantalla
@@ -120,7 +127,7 @@ fun AppNav(
                     currentRoute = Routes.ORDERS,
                     messenger = container.messenger,
                     onToggleStatus = { mainVm.toggleStatus() },
-                    onTab = { nav.navigateTo(it) },
+                    onTab = goToTab,
                     onNotifications = { nav.navigate(Routes.NOTIFICATIONS) }
                 ) {
                     val orderFromNotification by pendingOrderId.collectAsStateWithLifecycle()
@@ -130,7 +137,14 @@ fun AppNav(
                             onOrderConsumed()
                         }
                     }
-                    OrdersScreen(vm = vm, onGoToMap = { nav.navigateTo(Routes.MAP) })
+                    OrdersScreen(
+                        vm = vm,
+                        onGoToMap = { goToTab(Routes.MAP) },
+                        onShowOnMap = { id ->
+                            container.mapFocus.value = id
+                            nav.navigateTo(Routes.MAP)
+                        }
+                    )
                 }
             }
 
@@ -145,7 +159,7 @@ fun AppNav(
                     currentRoute = Routes.MAP,
                     messenger = container.messenger,
                     onToggleStatus = { mainVm.toggleStatus() },
-                    onTab = { nav.navigateTo(it) },
+                    onTab = goToTab,
                     onNotifications = { nav.navigate(Routes.NOTIFICATIONS) }
                 ) {
                     TrackingScreen(
@@ -168,7 +182,7 @@ fun AppNav(
                     currentRoute = Routes.EARNINGS,
                     messenger = container.messenger,
                     onToggleStatus = { mainVm.toggleStatus() },
-                    onTab = { nav.navigateTo(it) },
+                    onTab = goToTab,
                     onNotifications = { nav.navigate(Routes.NOTIFICATIONS) }
                 ) {
                     com.driverapp.repartidor.ui.earnings.EarningsScreen(vm = vm)
@@ -186,7 +200,7 @@ fun AppNav(
                     currentRoute = Routes.PROFILE,
                     messenger = container.messenger,
                     onToggleStatus = { mainVm.toggleStatus() },
-                    onTab = { nav.navigateTo(it) },
+                    onTab = goToTab,
                     onNotifications = { nav.navigate(Routes.NOTIFICATIONS) }
                 ) {
                     ProfileScreen(
@@ -234,7 +248,7 @@ fun AppNav(
                     currentRoute = Routes.NOTIFICATIONS,
                     messenger = container.messenger,
                     onToggleStatus = { mainVm.toggleStatus() },
-                    onTab = { nav.navigateTo(it) },
+                    onTab = goToTab,
                     onNotifications = { }
                 ) {
                     NotificationsScreen(vm = vm)

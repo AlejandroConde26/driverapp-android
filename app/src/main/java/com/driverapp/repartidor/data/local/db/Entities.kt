@@ -109,3 +109,10 @@ object Buckets {
     const val ACTIVE = "ACTIVE"
     const val HISTORY = "HISTORY"
 }
+
+/** Fila ligera para conservar el sello de la última transición de un pedido. */
+data class OrderMetaRow(
+    val orderId: Int,
+    val status: String,
+    val updatedAt: Long
+)

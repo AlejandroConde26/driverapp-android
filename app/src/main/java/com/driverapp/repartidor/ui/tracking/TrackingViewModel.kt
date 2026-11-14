@@ -12,6 +12,7 @@ import com.driverapp.repartidor.domain.usecase.ObtenerMisPedidosUseCase
 import com.driverapp.repartidor.ui.common.ErrorState
 import com.driverapp.repartidor.ui.common.UiMessenger
 import com.driverapp.repartidor.ui.common.toErrorState
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,11 +25,35 @@ class TrackingViewModel(
     private val historial: ObtenerHistorialUseCase,
     private val enCamino: MarcarEnCaminoUseCase,
     private val entregar: MarcarPedidoEntregadoUseCase,
-    private val messenger: UiMessenger
+    private val messenger: UiMessenger,
+    mapFocus: StateFlow<Int?> = MutableStateFlow(null)
 ) : ViewModel() {
+
+    private val _focused = MutableStateFlow<Pedido?>(null)
 
     val activeOrder: StateFlow<Pedido?> =
         repo.activeOrder.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /**
+     * Pedido que se pinta en el mapa: el enfocado desde la lista ("Ver en el mapa")
+     * o, si no hay ninguno, el que está en curso. Se declara DESPUÉS de `activeOrder`
+     * a propósito: en Kotlin los inicializadores corren en orden de declaración.
+     */
+    val displayedOrder: StateFlow<Pedido?> =
+        combine(activeOrder, _focused) { activo, enfocado -> enfocado ?: activo }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    init {
+        viewModelScope.launch {
+            mapFocus.collect { id ->
+                if (id == null) {
+                    _focused.value = null
+                    return@collect
+                }
+                _focused.value = runCatching { repo.detail(id.toLong()) }.getOrNull()
+            }
+        }
+    }
 
     private val _error = MutableStateFlow<ErrorState>(ErrorState.None)
     val error: StateFlow<ErrorState> = _error

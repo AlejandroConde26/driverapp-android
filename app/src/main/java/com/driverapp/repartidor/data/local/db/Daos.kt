@@ -27,6 +27,10 @@ interface OrderDao {
     @Query("SELECT * FROM orders_cache WHERE bucket = :bucket ORDER BY updatedAt DESC LIMIT 1")
     fun observeFirstOfBucket(bucket: String): Flow<OrderWithItems?>
 
+    /** Metadatos de un bucket: se usan para conservar el sello de la última transición. */
+    @Query("SELECT orderId, status, updatedAt FROM orders_cache WHERE bucket = :bucket")
+    suspend fun metaOfBucket(bucket: String): List<OrderMetaRow>
+
     @Upsert
     suspend fun upsert(order: OrderEntity)
 

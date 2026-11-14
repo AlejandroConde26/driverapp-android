@@ -44,6 +44,7 @@
     <string name="order_distance">Distancia</string>
     <string name="order_eta">Tiempo estimado</string>
     <string name="detail_close">Cerrar</string>
+    <string name="detail_show_on_map">Ver en el mapa</string>
     <string name="label_note">Nota: %1$s</string>
     <string name="status_accepted">Aceptado</string>
     <string name="status_on_the_way">En camino</string>

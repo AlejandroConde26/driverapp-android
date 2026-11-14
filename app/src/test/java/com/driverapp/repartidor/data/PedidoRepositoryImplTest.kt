@@ -66,7 +66,7 @@ class PedidoRepositoryImplTest {
     fun `accept con red guarda el pedido en ACTIVE`() = runTest {
         coEvery { api.acceptOrder(10L) } returns samplePedidoDto().copy(status = "ACEPTADO")
         val bucket = slot<String>()
-        coEvery { local.save(any(), capture(bucket)) } returns Unit
+        coEvery { local.save(any(), capture(bucket), any()) } returns Unit
 
         val result = repo().accept(10L)
 
@@ -77,7 +77,7 @@ class PedidoRepositoryImplTest {
     @Test
     fun `markInTransit llama a in-transit y deja el pedido EN_CAMINO`() = runTest {
         coEvery { api.inTransit(10L) } returns samplePedidoDto().copy(status = "EN_CAMINO")
-        coEvery { local.save(any(), any()) } returns Unit
+        coEvery { local.save(any(), any(), any()) } returns Unit
 
         val result = repo().markInTransit(10L)
 
@@ -89,7 +89,7 @@ class PedidoRepositoryImplTest {
     fun `complete mueve el pedido a HISTORY`() = runTest {
         coEvery { api.completeOrder(10L) } returns samplePedidoDto().copy(status = "ENTREGADO")
         val bucket = slot<String>()
-        coEvery { local.save(any(), capture(bucket)) } returns Unit
+        coEvery { local.save(any(), capture(bucket), any()) } returns Unit
 
         val result = repo().complete(10L)
 
@@ -102,13 +102,13 @@ class PedidoRepositoryImplTest {
         coEvery { api.inTransit(10L) } throws ApiFailure.NoConnection()
         coEvery { local.get(10) } returns samplePedido()
         coEvery { queue.enqueue(10, PendingType.IN_TRANSIT) } returns Unit
-        coEvery { local.save(any(), any()) } returns Unit
+        coEvery { local.save(any(), any(), any()) } returns Unit
 
         val result = repo().markInTransit(10L)
 
         assertEquals(EstadoPedido.EN_CAMINO, result.estado)
         coVerify { queue.enqueue(10, PendingType.IN_TRANSIT) }
-        coVerify { local.save(any(), Buckets.ACTIVE) }
+        coVerify { local.save(any(), Buckets.ACTIVE, any()) }
     }
 
     @Test(expected = ApiFailure.NotFound::class)

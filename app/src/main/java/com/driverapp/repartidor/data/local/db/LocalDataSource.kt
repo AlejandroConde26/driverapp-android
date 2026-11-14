@@ -33,12 +33,22 @@ class LocalDataSource(private val db: AppDatabase) {
     suspend fun get(orderId: Int): Pedido? = orders.getById(orderId)?.toDomain()
 
     suspend fun replaceBucket(bucket: String, pedidos: List<Pedido>) = db.withTransaction {
+        // `observeFirstOfBucket` ordena por updatedAt DESC. Si aquí se sellara todo
+        // con la hora del refresco, todos los pedidos quedarían empatados y el mapa
+        // mostraría siempre el mismo. Se conserva el sello de los que no cambiaron
+        // de estado, así gana el último CAMBIO real (aceptar, salir a camino…).
+        val previos = orders.metaOfBucket(bucket).associateBy { it.orderId }
         orders.deleteByBucket(bucket)
-        pedidos.forEach { save(it, bucket) }
+        val ahora = System.currentTimeMillis()
+        pedidos.forEach { pedido ->
+            val previo = previos[pedido.id]
+            val sello = if (previo != null && previo.status == pedido.estado.raw) previo.updatedAt else ahora
+            save(pedido, bucket, sello)
+        }
     }
 
-    suspend fun save(pedido: Pedido, bucket: String) {
-        orders.upsert(pedido.toEntity(bucket))
+    suspend fun save(pedido: Pedido, bucket: String, updatedAt: Long = System.currentTimeMillis()) {
+        orders.upsert(pedido.toEntity(bucket, updatedAt))
         orders.deleteItems(pedido.id)
         if (pedido.items.isNotEmpty()) {
             orders.insertItems(pedido.items.map { it.toEntity(pedido.id) })
@@ -100,7 +110,7 @@ class LocalDataSource(private val db: AppDatabase) {
 
 private val gson = Gson()
 
-private fun Pedido.toEntity(bucket: String) = OrderEntity(
+private fun Pedido.toEntity(bucket: String, updatedAt: Long = System.currentTimeMillis()) = OrderEntity(
     orderId = id,
     restaurantId = restaurantId,
     driverId = driverId,
@@ -120,7 +130,7 @@ private fun Pedido.toEntity(bucket: String) = OrderEntity(
     restaurantLat = restaurant?.lat,
     restaurantLng = restaurant?.lng,
     bucket = bucket,
-    updatedAt = System.currentTimeMillis()
+    updatedAt = updatedAt
 )
 
 private fun PedidoItem.toEntity(orderId: Int) = OrderItemEntity(

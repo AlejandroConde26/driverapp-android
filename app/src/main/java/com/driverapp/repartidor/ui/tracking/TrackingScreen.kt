@@ -76,7 +76,7 @@ fun TrackingScreen(
     vehicle: String?,
     modifier: Modifier = Modifier
 ) {
-    val order by vm.activeOrder.collectAsStateWithLifecycle()
+    val order by vm.displayedOrder.collectAsStateWithLifecycle()
     val location by locationRepo.location.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
 
