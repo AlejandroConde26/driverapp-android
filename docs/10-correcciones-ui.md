@@ -13,6 +13,16 @@ Estado: **corregido en el APK de depuración**, con build y suite en verde
 | 6 | El icono del login no aparece (o sale un bloque) | `Icon(painter = app_logo, tint = onBackground)`: el `tint` pinta **toda** la imagen de un color. El asset es un PNG 192×192 con fondo negro y pin blanco, así que se veía una mancha lisa. | `Image(...)` sin `tint`, recortado con `RoundedCornerShape(22.dp)` y borde `outlineVariant` para que el cuadrado negro no se pierda sobre fondo oscuro. |
 | 7 | El idioma inglés no se aplicaba en toda la app | `MainActivity` era `ComponentActivity` y `AppCompatDelegate.setApplicationLocales` **sólo actúa con AppCompat**; además al cambiar de idioma nadie llamaba a `applyLanguage`, solo se recreaba la Activity. Las cadenas ya estaban 166/166 traducidas. | `MainActivity : AppCompatActivity()` y `onLanguageChanged(code)` aplica el idioma antes de recrear. Añadido `LocalizationTest` (4 casos) que falla si falta una clave, si cambian los argumentos de formato o si queda español en `values-en`. |
 
+## Mejoras de usabilidad y notificaciones
+
+| # | Pedido | Implementación |
+|---|---|---|
+| 8 | Ver mi ubicación en el mapa en tiempo real | Se activa la capa nativa `map.isMyLocationEnabled` (punto azul, se mueve solo) cuando hay permiso; si no lo hay, se dibuja el marcador con la última posición conocida. Sin pedido activo la cámara se centra en el repartidor. |
+| 9 | Botón para la ruta en Google Maps | Botón «Cómo llegar en Google Maps» con cadena de intents: `google.navigation:q=lat,lng&mode=d` (app de Maps) → `geo:` → Google Maps web. Si el teléfono no tiene Maps, cae al siguiente y avisa con `map_route_error`. |
+| 10 | Volver a centrar el mapa | Botón flotante con `ic_fa_location_crosshairs` sobre el mapa; resetea el centrado y vuelve a la posición del repartidor. |
+| 11 | Pantalla de carga al cambiar preferencias | `BusyOverlay(applying, "Aplicando cambios…")` en Perfil: cada interruptor y el cambio de idioma muestran el aviso 400–450 ms antes de aplicarse (antes el tema o el idioma cambiaban de golpe). |
+| 12 | Notificación de pedido nuevo que abra el pedido | Backend: al crear un pedido, `_notify_new_order()` avisa a todos los repartidores activos con payload `{type: new_order, order_id, client}`. App: el servicio arma el texto en el idioma del usuario, usa una notificación por pedido y su `PendingIntent` lleva `extra_order_id`; `MainActivity` (ahora `singleTop`) lo recibe en `onNewIntent` y `AppNav` navega a Órdenes y abre el detalle (`OrdersViewModel.openOrderById`). |
+
 ## Verificación
 
 | Comprobación | Resultado |
@@ -24,6 +34,8 @@ Estado: **corregido en el APK de depuración**, con build y suite en verde
 | APK: referencias a osmdroid | **0** (migrado a `play-services-maps`, 632 referencias) |
 | Manifest fusionado | `com.google.android.geo.API_KEY` presente |
 | Cadenas es/en | 166/166 claves iguales, mismos argumentos de formato, 0 español en `values-en` |
+| Pedido creado por el admin | `POST /admin/orders` → 200 y notificación in-app «Nuevo pedido disponible — Pedido #30» visible en `/notifications/my` del repartidor |
+| Push de pedido nuevo | intentado en el acto; responde `SenderIdMismatch` mientras el teléfono siga con el APK del proyecto Firebase anterior |
 
 ## Registro de crashes en el teléfono
 

@@ -34,14 +34,23 @@ import com.driverapp.repartidor.ui.profile.ProfileViewModel
 import com.driverapp.repartidor.ui.theme.DriverAppTheme
 import com.driverapp.repartidor.ui.tracking.TrackingScreen
 import com.driverapp.repartidor.ui.tracking.TrackingViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+
+/** Sin pedido pendiente: valor por defecto cuando no se llega desde una notificación. */
+private val NoPendingOrder = MutableStateFlow<Int?>(null)
 
 /**
  * Grafo de navegación declarativo (Sprint 5): `login` → `main`, con las 4
  * pestañas como destinos y `notifications` como destino auxiliar del header.
  */
 @Composable
-fun AppNav(container: AppContainer) {
+fun AppNav(
+    container: AppContainer,
+    pendingOrderId: StateFlow<Int?> = NoPendingOrder,
+    onOrderConsumed: () -> Unit = {}
+) {
     val context = LocalContext.current
     val nav = rememberNavController()
 
@@ -70,6 +79,13 @@ fun AppNav(container: AppContainer) {
     }
 
     val start = remember { if (loginVm.isLoggedIn()) Routes.ORDERS else Routes.LOGIN }
+
+    // Pedido abierto desde una notificación: se navega a Órdenes y la pantalla
+    // consume el id para abrir el detalle.
+    val pendingId by pendingOrderId.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingId) {
+        if (pendingId != null && loginVm.isLoggedIn()) nav.navigateTo(Routes.ORDERS)
+    }
 
     // El tema sigue la PREFERENCIA del usuario, no el modo del sistema. Con
     // ComponentActivity, `AppCompatDelegate.setDefaultNightMode` no se aplica, así
@@ -107,6 +123,13 @@ fun AppNav(container: AppContainer) {
                     onTab = { nav.navigateTo(it) },
                     onNotifications = { nav.navigate(Routes.NOTIFICATIONS) }
                 ) {
+                    val orderFromNotification by pendingOrderId.collectAsStateWithLifecycle()
+                    LaunchedEffect(orderFromNotification) {
+                        orderFromNotification?.let {
+                            vm.openOrderById(it)
+                            onOrderConsumed()
+                        }
+                    }
                     OrdersScreen(vm = vm, onGoToMap = { nav.navigateTo(Routes.MAP) })
                 }
             }

@@ -1,5 +1,6 @@
 package com.driverapp.repartidor.ui.profile
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.driverapp.repartidor.R
 import com.driverapp.repartidor.data.local.UserPreferences
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.driverapp.repartidor.ui.components.BusyOverlay
 import com.driverapp.repartidor.ui.components.ConfirmDialog
 import com.driverapp.repartidor.ui.components.ToggleRow
 import java.util.Locale
@@ -60,10 +65,22 @@ fun ProfileScreen(
     var logoutDialog by remember { mutableStateOf(false) }
     var infoDialog by remember { mutableStateOf<Pair<String, String>?>(null) }
 
+    // Aviso de carga al cambiar una preferencia: el cambio de tema o de idioma era
+    // instantáneo y se sentía brusco. Se muestra el overlay y se aplica después.
+    var applying by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(applying) {
+        if (applying) {
+            delay(450)
+            applying = false
+        }
+    }
+
     LaunchedEffect(Unit) { vm.refreshAll() }
 
+    Box(modifier.fillMaxSize()) {
     Column(
-        modifier
+        Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
@@ -148,17 +165,18 @@ fun ProfileScreen(
         ToggleRow(
             title = stringResource(R.string.pref_dark_mode),
             checked = prefs.darkMode,
-            onCheckedChange = { vm.setDarkMode(it) }
+            onCheckedChange = { applying = true; vm.setDarkMode(it) }
         )
         ToggleRow(
             title = stringResource(R.string.pref_notifications),
             checked = prefs.notifications,
-            onCheckedChange = { vm.setNotificationsEnabled(it) }
+            onCheckedChange = { applying = true; vm.setNotificationsEnabled(it) }
         )
         ToggleRow(
             title = stringResource(R.string.pref_location),
             checked = prefs.location,
             onCheckedChange = {
+                applying = true
                 vm.setLocationEnabled(it)
                 onLocationChanged(it)
             }
@@ -166,7 +184,7 @@ fun ProfileScreen(
         ToggleRow(
             title = stringResource(R.string.pref_sound),
             checked = prefs.sound,
-            onCheckedChange = { vm.setNotificationSound(it) }
+            onCheckedChange = { applying = true; vm.setNotificationSound(it) }
         )
         ActionRow(
             label = stringResource(R.string.pref_language),
@@ -197,6 +215,9 @@ fun ProfileScreen(
             Text(stringResource(R.string.logout), color = MaterialTheme.colorScheme.onSurface)
         }
         Spacer(Modifier.height(24.dp))
+    }
+
+        BusyOverlay(applying, label = stringResource(R.string.pref_applying))
     }
 
     // --- Diálogos ---
@@ -246,12 +267,22 @@ fun ProfileScreen(
                     ActionRow(label = stringResource(R.string.language_es)) {
                         vm.setLanguage(UserPreferences.LANG_ES)
                         languageDialog = false
-                        onLanguageChanged(UserPreferences.LANG_ES)
+                        applying = true
+                        // El idioma se aplica tras ver el aviso: antes se recreaba la
+                        // pantalla de golpe y no había realimentación.
+                        scope.launch {
+                            delay(400)
+                            onLanguageChanged(UserPreferences.LANG_ES)
+                        }
                     }
                     ActionRow(label = stringResource(R.string.language_en)) {
                         vm.setLanguage(UserPreferences.LANG_EN)
                         languageDialog = false
-                        onLanguageChanged(UserPreferences.LANG_EN)
+                        applying = true
+                        scope.launch {
+                            delay(400)
+                            onLanguageChanged(UserPreferences.LANG_EN)
+                        }
                     }
                 }
             },

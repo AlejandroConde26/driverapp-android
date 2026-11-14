@@ -15,7 +15,7 @@ Estado del pedido: `PENDIENTE → ACEPTADO → EN_CAMINO → ENTREGADO` (o `RECH
 |---|---|---|---|
 | 1 | Base: login, sesión y perfil | ✅ | `LoginViewModelTest` (6), `ProfileViewModelTest` (5) |
 | 2 | Órdenes y flujo de entrega | ✅ | `TrackingViewModelTest` cubre `ACEPTADO→EN_CAMINO→ENTREGADO` |
-| 3 | Mapa, GPS y notificaciones | ✅ ¹ | `LocationForegroundService` + `TrackingScreen` |
+| 3 | Mapa, GPS y notificaciones | ✅ ¹ | `LocationForegroundService` + `TrackingScreen` + Google Maps (punto azul, ruta a Google Maps) |
 | 4 | Ganancias, preferencias y pulido | ✅ | `EarningsViewModelTest`, `UserPreferencesTest` |
 | 5 | Interfaz y navegación en Jetpack Compose | ✅ | 0 layouts XML, `NavHost` en `ui/AppNav.kt` |
 | 6 | Persistencia local: DataStore, Room, Repository | ✅ | `OrderDaoTest` (6), `app/schemas/…/1.json` |

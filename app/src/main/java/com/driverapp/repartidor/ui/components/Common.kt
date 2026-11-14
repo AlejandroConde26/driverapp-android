@@ -268,7 +268,7 @@ fun ToastHost(messenger: UiMessenger, modifier: Modifier = Modifier) {
 
 /** Overlay bloqueante mientras se envía una transición. */
 @Composable
-fun BusyOverlay(visible: Boolean) {
+fun BusyOverlay(visible: Boolean, label: String? = null) {
     if (!visible) return
     Box(
         Modifier
@@ -276,7 +276,17 @@ fun BusyOverlay(visible: Boolean) {
             .background(Color(0x33000000)),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            if (label != null) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
     }
 }
 

@@ -28,12 +28,28 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        val title = message.notification?.title ?: message.data["title"] ?: "DriverApp"
-        val body = message.notification?.body ?: message.data["message"] ?: ""
-        showNotification(title, body)
+        val data = message.data
+        val orderId = data["order_id"]?.toIntOrNull()
+
+        // Pedido nuevo: el texto se arma con los recursos del idioma del usuario,
+        // así la notificación respeta la preferencia es/en.
+        val title: String
+        val body: String
+        if (data["type"] == "new_order" || data["screen"] == "orders") {
+            title = getString(R.string.notif_new_order_title)
+            body = if (orderId != null) {
+                getString(R.string.notif_new_order_body, orderId, data["client"].orEmpty())
+            } else {
+                message.notification?.body ?: data["message"].orEmpty()
+            }
+        } else {
+            title = message.notification?.title ?: data["title"] ?: getString(R.string.app_name)
+            body = message.notification?.body ?: data["message"].orEmpty()
+        }
+        showNotification(title, body, orderId)
     }
 
-    private fun showNotification(title: String, body: String) {
+    private fun showNotification(title: String, body: String, orderId: Int?) {
         val container = (application as? App)?.container ?: return
         if (container.tokenStore.token().isNullOrBlank()) return
 
@@ -54,9 +70,11 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            // Al tocar la notificación la app abre Órdenes con ese pedido.
+            if (orderId != null) putExtra(MainActivity.EXTRA_ORDER_ID, orderId)
         }
         val pending = PendingIntent.getActivity(
-            this, 0, intent,
+            this, orderId ?: 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -72,7 +90,8 @@ class DriverFirebaseMessagingService : FirebaseMessagingService() {
 
         runCatching {
             NotificationManagerCompat.from(this)
-                .notify(System.currentTimeMillis().toInt(), notification)
+                // Una notificación por pedido: no se pisan entre sí.
+                .notify(orderId ?: System.currentTimeMillis().toInt(), notification)
         }.onFailure { Log.w("DriverApp", "No se pudo mostrar la notificación: ${it.message}") }
     }
 }

@@ -81,6 +81,13 @@
     <string name="map_play_services_missing">This device has no Google Play Services, so the map cannot be shown.</string>
     <string name="map_dial_error">Could not open the dialer</string>
     <string name="map_localizing">Locating…</string>
+    <string name="map_open_route">Navigate with Google Maps</string>
+    <string name="map_center_me">Center on my location</string>
+    <string name="map_route_error">Could not open Google Maps</string>
+    <string name="map_no_location_yet">Waiting for GPS signal…</string>
+    <string name="pref_applying">Applying changes…</string>
+    <string name="notif_new_order_title">New order available</string>
+    <string name="notif_new_order_body">Order #%1$d · %2$s</string>
     <string name="map_activate_location">Enable real-time location in Profile</string>
     <string name="map_activating_gps">Starting GPS…</string>
     <string name="map_no_coordinates">Destination without coordinates</string>

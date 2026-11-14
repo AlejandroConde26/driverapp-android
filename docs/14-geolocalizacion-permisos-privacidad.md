@@ -31,7 +31,9 @@ backend en producción, no sobre la intención del diseño.
 | Clave | `MAPS_API_KEY` en `local.properties` (ignorado por git) → `manifestPlaceholders` → `com.google.android.geo.API_KEY` |
 | Vista | `MapView` dentro de `AndroidView`, con `getMapAsync` para obtener el `GoogleMap` |
 | Marcadores | Restaurante (origen), cliente (destino) y repartidor (posición en vivo) |
-| Cámara | Centrada una sola vez: restaurante → repartidor → destino (no pelea con el usuario) |
+| Mi ubicación | Capa nativa `isMyLocationEnabled` (punto azul en tiempo real) con permiso; marcador de respaldo si no lo hay. Sin pedido activo, la cámara se centra en el repartidor |
+| Ruta | Botón «Cómo llegar en Google Maps»: `google.navigation:` → `geo:` → Maps web |
+| Cámara | Centrada una sola vez (restaurante → repartidor → destino) y botón para volver a centrar en la posición propia |
 | Ciclo de vida | `onCreate`, `onResume`, `onPause`, `onDestroy` conectados al `LifecycleOwner` de Compose |
 | Degradación | Sin Google Play Services se muestra un aviso (`map_play_services_missing`) en lugar de un mapa vacío |
 
@@ -165,6 +167,7 @@ del proyecto es de **56 tests, 0 fallos**.
 | Recepción | `DriverFirebaseMessagingService` con canal `orders`, respeta preferencias de aviso y sonido y comprueba `POST_NOTIFICATIONS` |
 | Backend | Service account en `/root/driverapp/backend/firebase-service-account.json` (permisos 600) y `FIREBASE_CREDENTIALS_PATH` en el `.env` |
 | Envío | `POST /api/v1/notifications/send` → **HTTP 200**, notificación persistida y `messaging.send()` con credenciales válidas |
+| Pedido nuevo | Al crear un pedido (`POST /admin/orders`) el backend avisa a los repartidores activos con `{type: new_order, order_id, client}`; la app arma el texto en su idioma y la notificación abre el pedido (`extra_order_id` → Órdenes → detalle) |
 | Pendiente | La entrega al teléfono se confirma al instalar el APK alineado: el token anterior era de otro proyecto y respondía `SenderIdMismatchError` (se puso a `NULL` en la BD) |
 
 ---

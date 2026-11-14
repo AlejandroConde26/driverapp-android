@@ -1,19 +1,27 @@
 package com.driverapp.repartidor.ui.tracking
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -29,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -78,6 +87,12 @@ fun TrackingScreen(
     val mapViewState = remember { mutableStateOf<MapView?>(null) }
     val googleMap = remember { mutableStateOf<GoogleMap?>(null) }
     var centeredOnce by remember { mutableStateOf(false) }
+    var recenter by remember { mutableStateOf(0) }
+
+    val hasLocationPermission = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
 
     // Google Maps exige Play Services; sin él no hay mapa que mostrar.
     val hasPlayServices = remember {
@@ -125,66 +140,108 @@ fun TrackingScreen(
                 )
             }
         } else {
-            AndroidView(
-                modifier = Modifier
+            Box(
+                Modifier
                     .fillMaxWidth()
-                    .height(300.dp),
-                factory = { ctx ->
-                    MapView(ctx).apply {
-                        onCreate(null)
-                        onResume()
-                        mapViewState.value = this
-                        getMapAsync { map ->
-                            map.uiSettings.isZoomControlsEnabled = false
-                            map.uiSettings.isMyLocationButtonEnabled = false
-                            googleMap.value = map
+                    .height(300.dp)
+            ) {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { ctx ->
+                        MapView(ctx).apply {
+                            onCreate(null)
+                            onResume()
+                            mapViewState.value = this
+                            getMapAsync { map ->
+                                map.uiSettings.isZoomControlsEnabled = false
+                                map.uiSettings.isMyLocationButtonEnabled = false
+                                // Punto azul nativo: se mueve en tiempo real sin que la
+                                // app tenga que repintar marcadores.
+                                if (hasLocationPermission) {
+                                    runCatching { map.isMyLocationEnabled = true }
+                                }
+                                googleMap.value = map
+                            }
+                        }
+                    },
+                    update = { view ->
+                        // `googleMap` y `recenter` se leen aquí: cuando cambian, esta
+                        // lambda se vuelve a ejecutar.
+                        val map = googleMap.value ?: return@AndroidView
+                        recenter.let { }
+                        // Si el permiso se concedió con la pantalla abierta, se activa aquí.
+                        if (hasLocationPermission && !map.isMyLocationEnabled) {
+                            runCatching { map.isMyLocationEnabled = true }
+                        }
+                        map.clear()
+
+                        val currentOrder = order
+                        val currentLocation = location
+
+                        currentOrder?.restaurant?.let { restaurant ->
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(LatLng(restaurant.lat, restaurant.lng))
+                                    .title(restaurant.name)
+                            )
+                        }
+                        currentOrder?.let {
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(LatLng(it.destLat, it.destLng))
+                                    .title(it.clientName)
+                            )
+                        }
+                        // Sin punto azul nativo (permiso pendiente) se dibuja el marcador.
+                        if (!hasLocationPermission) {
+                            currentLocation?.let {
+                                map.addMarker(
+                                    MarkerOptions()
+                                        .position(LatLng(it.lat, it.lng))
+                                        .title(context.getString(R.string.map_my_location))
+                                )
+                            }
+                        }
+
+                        // Centrar: restaurante > mi ubicación > destino. Sin pedido activo
+                        // cae en la posición del repartidor, que es lo que se espera.
+                        if (!centeredOnce) {
+                            val target = currentOrder?.restaurant?.let { LatLng(it.lat, it.lng) }
+                                ?: currentLocation?.let { LatLng(it.lat, it.lng) }
+                                ?: currentOrder?.let { LatLng(it.destLat, it.destLng) }
+                            if (target != null) {
+                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(target, 16f))
+                                centeredOnce = true
+                            }
                         }
                     }
-                },
-                update = { view ->
-                    // `googleMap` se lee aquí dentro: cuando getMapAsync termina, esta
-                    // lambda se vuelve a ejecutar y dibuja los marcadores.
-                    val map = googleMap.value ?: return@AndroidView
-                    map.clear()
+                )
 
-                    val currentOrder = order
-                    val currentLocation = location
-
-                    currentOrder?.restaurant?.let { restaurant ->
-                        map.addMarker(
-                            MarkerOptions()
-                                .position(LatLng(restaurant.lat, restaurant.lng))
-                                .title(restaurant.name)
+                // Volver a centrar en la posición del repartidor tras mover el mapa.
+                if (hasLocationPermission) {
+                    FilledTonalButton(
+                        onClick = {
+                            centeredOnce = false
+                            recenter++
+                        },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_fa_location_crosshairs),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
                         )
-                    }
-                    currentOrder?.let {
-                        map.addMarker(
-                            MarkerOptions()
-                                .position(LatLng(it.destLat, it.destLng))
-                                .title(it.clientName)
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            stringResource(R.string.map_center_me),
+                            style = MaterialTheme.typography.labelMedium
                         )
-                    }
-                    currentLocation?.let {
-                        map.addMarker(
-                            MarkerOptions()
-                                .position(LatLng(it.lat, it.lng))
-                                .title(context.getString(R.string.map_my_location))
-                        )
-                    }
-
-                    // Centrar una sola vez (restaurante > repartidor > cliente) para no
-                    // pelear con el usuario si mueve el mapa.
-                    if (!centeredOnce) {
-                        val target = currentOrder?.restaurant?.let { LatLng(it.lat, it.lng) }
-                            ?: currentLocation?.let { LatLng(it.lat, it.lng) }
-                            ?: currentOrder?.let { LatLng(it.destLat, it.destLng) }
-                        if (target != null) {
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(target, 16f))
-                            centeredOnce = true
-                        }
                     }
                 }
-            )
+            }
         }
 
         Column(Modifier.padding(16.dp)) {
@@ -227,6 +284,16 @@ fun TrackingScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.map_complete_delivery))
+                }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        openRoute(context, current.destLat, current.destLng, current.clientName, vm)
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.map_open_route))
                 }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(
@@ -385,4 +452,32 @@ private fun ActiveOrderCard(
             }
         }
     }
+}
+
+/**
+ * Abre la ruta al destino, de la opción más específica a la más genérica:
+ * app de Google Maps en modo conducción → intents `geo:` → Google Maps web.
+ * Si el teléfono no tiene Maps instalado, el primer intent lanza
+ * ActivityNotFoundException y se prueba el siguiente.
+ */
+private fun openRoute(
+    context: android.content.Context,
+    lat: Double,
+    lng: Double,
+    label: String?,
+    vm: TrackingViewModel
+) {
+    val candidates = listOf(
+        Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=$lat,$lng&mode=d"))
+            .setPackage("com.google.android.apps.maps"),
+        Intent(Intent.ACTION_VIEW, Uri.parse("geo:$lat,$lng?q=$lat,$lng(${Uri.encode(label.orEmpty())})")),
+        Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$lat,$lng")
+        )
+    )
+    for (intent in candidates) {
+        if (runCatching { context.startActivity(intent) }.isSuccess) return
+    }
+    vm.showMessage(R.string.map_route_error)
 }

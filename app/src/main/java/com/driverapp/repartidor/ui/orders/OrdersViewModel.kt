@@ -79,6 +79,23 @@ class OrdersViewModel(
         }
     }
 
+    /**
+     * Abre el detalle de un pedido por id. Se usa cuando la app se abre desde la
+     * notificación de pedido nuevo: el pedido puede no estar aún en la caché local.
+     */
+    fun openOrderById(id: Int) {
+        val found = (available.value + history.value).firstOrNull { it.id == id }
+        if (found != null) {
+            openDetail(found)
+            return
+        }
+        viewModelScope.launch {
+            runCatching { disponibles() }
+            runCatching { historial() }
+            (available.value + history.value).firstOrNull { it.id == id }?.let { openDetail(it) }
+        }
+    }
+
     fun closeDetail() {
         _detail.value = null
     }

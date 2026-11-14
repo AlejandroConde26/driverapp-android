@@ -58,6 +58,25 @@ También se quitó el botón «Adjuntar comprobante» de `TrackingScreen`, los e
 `proofUrl`/`uploadingProof` del `TrackingViewModel` y la llamada `syncPresence`
 del `LocationForegroundService`.
 
+## Aviso de pedido nuevo (extremo a extremo)
+
+Cuando el panel crea un pedido (`POST /api/v1/admin/orders`), el backend ejecuta
+`_notify_new_order()` y avisa a **todos los repartidores activos**:
+
+| Pieza | Comportamiento |
+|---|---|
+| Payload | `data = {type: "new_order", order_id, client, screen: "orders"}` — **solo datos**, sin bloque `notification`, para que la app decida el texto y el destino del toque |
+| Persistencia | Se crea una fila en `notifications` por repartidor: aparece también en la pestaña Notificaciones |
+| Si hay token | `messaging.send()` por FCM (HTTP v1) con las credenciales del proyecto |
+| Si no hay token | Se registra en el log y la notificación queda solo in-app |
+| En la app | `DriverFirebaseMessagingService` arma el título con `notif_new_order_title` en el idioma del usuario; **una notificación por pedido** (id = `order_id`) |
+| Al tocar | `PendingIntent` con `extra_order_id` → `MainActivity` (`singleTop`, recibe `onNewIntent`) → `AppNav` navega a Órdenes → `OrdersViewModel.openOrderById` abre el detalle (refresca de la API si el pedido no estaba en caché) |
+
+Verificado: pedido #30 creado con `POST /admin/orders` → 200; el repartidor ve
+«Nuevo pedido disponible — Pedido #30 · Prueba Push» en `/notifications/my`; el envío
+FCM se intenta en el acto y solo falla (`SenderId mismatch`) mientras el teléfono
+tenga instalado el APK del proyecto Firebase anterior.
+
 ## Verificación
 
 | Comprobación | Resultado |
