@@ -1,6 +1,12 @@
 package com.driverapp.repartidor.ui
 
 import android.Manifest
+import androidx.core.app.ActivityCompat
+import android.provider.Settings
+import android.net.Uri
+import android.content.Intent
+import android.content.ContextWrapper
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -79,6 +85,23 @@ fun AppNav(
         } else {
             container.messenger.show(R.string.msg_location_denied)
             scope.launch { container.userPreferences.setLocationEnabled(false) }
+            // Si el sistema ya no ofrece el diálogo (denegado para siempre), la única
+            // salida es Ajustes: se abre directamente en lugar de dejar al usuario sin
+            // forma de activar la ubicación.
+            val activity = context.findActivity()
+            if (activity != null && !ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity, Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                runCatching {
+                    activity.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", activity.packageName, null)
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -321,4 +344,11 @@ private fun requestNotificationPermission(context: Context) {
             1001
         )
     }
+}
+
+/** Compose envuelve el contexto: se busca la Activity real para los diálogos. */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
