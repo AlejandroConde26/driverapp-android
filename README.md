@@ -80,7 +80,13 @@ git clone <repo> && cd driverapp-android-main
 | `docs/08-informe-hu-login.md` | Informe de la HU-01 |
 | `docs/S08-integracion-api-rest-retrofit.md` | Endpoints, contrato JSON y Retrofit |
 | `docs/S09-crud-errores-estados-conectividad.md` | CRUD, errores, estados y cola offline |
-| `docs/S10-integracion-firebase.md` | Auth, Firestore y Storage |
+| `docs/S10-notificaciones-fcm.md` | Firebase acotado a notificaciones push (FCM) |
+| `docs/10-correcciones-ui.md` | Correcciones de UI, mapa, sesión e idioma |
+| `docs/11-permisos-y-privacidad.md` | Permisos, datos tratados, Términos y Política de Privacidad |
+| `docs/12-google-maps-y-fcm-setup.md` | Restricción de la API key y service account de Firebase |
+| `docs/13-metodologia-desarrollo.md` | **Metodología, EDT, cronograma y evidencias** |
+| `docs/14-geolocalizacion-permisos-privacidad.md` | **Estado de los 6 ejes: Maps, permisos, privacidad, persistencia, REST y Firebase** |
+| `docs/auth-backend.md` | Contrato de autenticación propia (bcrypt + JWT) y su verificación |
 
 ## Estado
 
