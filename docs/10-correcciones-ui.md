@@ -29,6 +29,8 @@ Estado: **corregido en el APK de depuración**, con build y suite en verde
 | 17 | Tocar un pedido en el mapa no hacía nada | Solo se podía aceptar desde la lista, sin ver dónde queda. | El marcador naranja lleva el `id` como `tag`; `setOnMarkerClickListener` abre `AvailableOrderCard` **debajo del mapa** con cliente, dirección, distancia, importe, pago y botones **Aceptar / Rechazar** (más «cómo llegar» y cerrar). Los pedidos disponibles ya no muestran botones de transición de estado. |
 | 18 | «Cómo llegar en Google Maps» siempre apuntaba al cliente | Antes de recoger el pedido, el destino útil es el **restaurante**. | Con el pedido en `ACEPTADO` el botón dice **«Cómo llegar al restaurante en Google Maps»** y navega a las coordenadas de SUMAQ; tras «Salí del restaurante» (`EN_CAMINO`) pasa a «Cómo llegar al cliente en Google Maps». Si el pedido no trae restaurante, cae al cliente. |
 
+| 19 | `BUILD FAILED` con «Internal compiler error» en `kaptGenerateStubsDebugKotlin` | No era un error de código. El equipo tiene 7 GB de RAM y en ese momento corrían el emulador Pixel_10a (1,5 GB, 330 % de CPU), Android Studio (1,2 GB), dos daemons de Gradle (Studio usa JBR 21 y la consola JDK 17) y el daemon de Kotlin sin tope de heap: 566 MB disponibles, 9,9 GB de swap y `kswapd0` al 10 % → el compilador murió. El árbol estaba limpio y el mismo commit ya había compilado antes. | `gradle.properties`: `kotlin.daemon.jvmargs=-Xmx1280m`, `org.gradle.workers.max=4` y `-XX:MaxMetaspaceSize=512m`. El build completo queda en ~3,3 GB. Regla práctica: no compilar desde la consola con Studio abierto (cada uno arranca su propio daemon). |
+
 ## Verificación
 
 | Comprobación | Resultado |
